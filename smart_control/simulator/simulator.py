@@ -50,10 +50,25 @@ class Simulator:
   = (energy storage)
   ```
 
-  and is solved for the CV temperature $T_{i,j}$ at the new time step.
-  The temporal parameter $t_0$ groups the storage term; its exact
-  definition differs per CV class because corner/edge CVs represent a
-  fractional CV volume (1/4 and 1/2 respectively).
+  and is solved for the CV temperature $T_{i,j}$ at the new time step. Every
+  term is a heat rate in W. The storage term is $\rho c\, u v z / \Delta t$
+  for every CV class alike: a corner or edge CV represents a fractional volume
+  (1/4 and 1/2 respectively), and that falls out of its extents $u$ and $v$
+  rather than being applied as a separate factor.
+
+  Heat crossing an interior face passes through the half cell on either side
+  in series, so the conductance $A_f \Gamma_f$ is built from both CVs'
+  conductivities and from the area the two of them actually share. The two CVs
+  therefore agree about the heat crossing the face, and the balance stays
+  conservative where materials meet. A boundary face instead puts the
+  convective film in series with the CV's own outer half cell.
+
+  The shared geometry is computed by:
+
+  - CV extents $u$ and $v$: `_get_cv_dimensions`
+  - Interior face conductance $A_f \Gamma_f$: `_get_face_conductance`
+  - Ambient face conductance $\sum_f A_f \Gamma_{\infty,f}$:
+    `_get_ambient_conductance`
 
   The specific update formulas are documented in each estimator method:
 
@@ -61,6 +76,8 @@ class Simulator:
     `_get_corner_cv_temp_estimate`
   - Edge CV (3 neighbors, 1 exposed face):
     `_get_edge_cv_temp_estimate`
+  - Corner and edge CVs share one solver:
+    `_get_boundary_cv_temp_estimate`
   - Interior CV (4 neighbors, no exposed face):
     `_get_interior_cv_temp_estimate`
   - Interior mass node:
@@ -83,10 +100,14 @@ class Simulator:
   - $k$: thermal conductivity of the CV [W/(m K)]
   - $\rho$: density [kg/m^3]
   - $c$: specific heat capacity [J/(kg K)]
-  - $\alpha = k / (\rho c)$: thermal diffusivity [m^2/s]
   - $h$: convection heat transfer coefficient [W/(m^2 K)]
-  - $\delta_x$: spatial discretization (uniform CV size) [m]
+  - $\delta_x$: grid spacing (uniform CV size) [m]
+  - $u, v$: extent of a CV along each axis, $\delta_x$ or $\delta_x / 2$ [m]
   - $z$: CV height (floor height) [m]
+  - $A_f$: area shared across face $f$ [m^2]
+  - $\Gamma_f$: interior face conductance per unit area [W/(m^2 K)]
+  - $\Gamma_{\infty,f}$: ambient face conductance per unit area [W/(m^2 K)]
+  - $I_P$: interior faces of CV $P$; $B_P$: its faces open to the ambient
   - $\Delta t$: time step [s]
   """
 
@@ -134,6 +155,19 @@ class Simulator:
     self._start_timestamp = start_timestamp
     self._relative_convergence_threshold = relative_convergence_threshold
     self._relative_convergence_streak = relative_convergence_streak
+    # Face geometry and the conductances built from it depend only on the
+    # grid, the materials and the floor height, none of which move during a
+    # simulation, but the estimators ask for them once per face per iteration.
+    # Memoize them; see _get_cv_dimensions, _get_face_conductance and
+    # _get_ambient_conductance. The ambient cache holds the part that is
+    # independent of the convection coefficient, which does change each step.
+    self._cv_dimensions_cache: dict[CVCoordinates, tuple[float, float]] = {}
+    self._face_conductance_cache: dict[
+        tuple[CVCoordinates, CVCoordinates], float
+    ] = {}
+    self._ambient_face_cache: dict[
+        CVCoordinates, tuple[tuple[float, float], ...]
+    ] = {}
     # Holds the interior longwave exchange for the duration of one sweep; see
     # _get_longwave_terms. Outside a sweep it is None and the terms are
     # recomputed on demand, so a stale field can never be read back.
@@ -147,6 +181,9 @@ class Simulator:
     self.building.reset()
     self._hvac.reset()
     self._current_timestamp = self._start_timestamp
+    self._cv_dimensions_cache.clear()
+    self._face_conductance_cache.clear()
+    self._ambient_face_cache.clear()
     self._longwave_terms = None
 
   @property
@@ -161,6 +198,227 @@ class Simulator:
   def current_timestamp(self) -> pd.Timestamp:
     return self._current_timestamp
 
+  def _get_cv_dimensions(
+      self, cv_coordinates: CVCoordinates
+  ) -> tuple[float, float]:
+    r"""Returns the extent of a CV along each axis in m.
+
+    A boundary CV shares a face with the outside, so it reaches only half a
+    grid spacing in the direction of any face that is open to the ambient.
+    An edge CV is therefore half width along one axis and a corner CV along
+    both, which is what puts the factors of 1/2 and 1/4 in their volumes.
+
+    The two axes are checked independently: $u$ is halved when the CV is open
+    to the ambient above or below, and $v$ when it is open to the left or the
+    right. This is what makes a reentrant corner come out right, where asking
+    only how many neighbors a CV has cannot tell which axis was narrowed.
+
+    Note:
+      $u$ is the extent along the second (column) index and $v$ along the
+      first (row) index, which is transposed with respect to the notation in
+      the reference derivation. The two are interchangeable on the square grid
+      used here; the pairing of a length with the face it crosses is what
+      matters, and that is consistent throughout this module.
+
+    Args:
+      cv_coordinates: 2-Tuple representing coordinates in building of CV.
+
+    Returns:
+      2-Tuple $(u, v)$ of the CV extents in m.
+    """
+    cached = self._cv_dimensions_cache.get(cv_coordinates)
+    if cached is not None:
+      return cached
+
+    x, y = cv_coordinates
+    delta_x = self.building.cv_size_cm / 100.0
+    neighbors = {tuple(n) for n in self.building.neighbors[x][y]}
+    u = delta_x
+    v = delta_x
+    if (x, y - 1) not in neighbors or (x, y + 1) not in neighbors:
+      u = delta_x / 2.0
+    if (x - 1, y) not in neighbors or (x + 1, y) not in neighbors:
+      v = delta_x / 2.0
+    self._cv_dimensions_cache[cv_coordinates] = (u, v)
+    return u, v
+
+  def _get_face_conductance(
+      self,
+      cv_coordinates: CVCoordinates,
+      neighbor_coordinates: CVCoordinates,
+  ) -> float:
+    r"""Returns the conductance of the face between a CV and a neighbor in W/K.
+
+    A face is shared by two CVs, so the heat crossing it passes through the
+    half cell on either side in series:
+
+    $$A_f \Gamma_f = A_f \left[\frac{\ell_{P,f}}{2k_P} +
+        \frac{\ell_{N_f,f}}{2k_{N_f}}\right]^{-1}$$
+
+    where $\ell_{\cdot,f}$ is the extent of each CV normal to the face. Using
+    the owner CV's own conductivity across its own full width, $k_P/\ell_P$,
+    makes the two CVs sharing the face disagree about the heat crossing it, so
+    the balance is not conservative wherever the materials differ - inside air
+    next to an exterior wall is off by the ratio of their conductivities. For a
+    uniform material on a uniform grid both forms agree.
+
+    The two CVs only touch over the narrower of the two, so the shared area is
+
+    $$A_f = \min(v_P, v_{N_f})\, z \quad\text{(left or right face)}, \qquad
+      A_f = \min(u_P, u_{N_f})\, z \quad\text{(above or below face)}.$$
+
+    Taking each CV's own width instead would make the pair disagree about the
+    area of contact wherever a half-width boundary CV meets a full interior
+    one, and the balance would leak energy at every such face.
+
+    Args:
+      cv_coordinates: 2-Tuple representing coordinates in building of CV.
+      neighbor_coordinates: 2-Tuple of coordinates of the neighboring CV.
+
+    Returns:
+      The face conductance $A_f \Gamma_f$ in W/K.
+    """
+    cache_key = (cv_coordinates, neighbor_coordinates)
+    cached = self._face_conductance_cache.get(cache_key)
+    if cached is not None:
+      return cached
+
+    x, y = cv_coordinates
+    nx, ny = neighbor_coordinates
+    z = self.building.floor_height_cm / 100.0
+    u, v = self._get_cv_dimensions(cv_coordinates)
+    neighbor_u, neighbor_v = self._get_cv_dimensions(neighbor_coordinates)
+
+    # A left or right neighbor sits across a face of area v*z and conducts
+    # over u; an above or below neighbor across a face of area u*z over v.
+    horizontal = ny != y
+    length = u if horizontal else v
+    neighbor_length = neighbor_u if horizontal else neighbor_v
+    # A boundary CV reaches half a grid spacing across a face that a full
+    # interior neighbor spans completely.
+    area = (min(v, neighbor_v) if horizontal else min(u, neighbor_u)) * z
+
+    conductance = area / (
+        length / (2.0 * self.building.conductivity[x][y])
+        + neighbor_length / (2.0 * self.building.conductivity[nx][ny])
+    )
+    self._face_conductance_cache[cache_key] = conductance
+    return conductance
+
+  def _get_ambient_conductance(
+      self, cv_coordinates: CVCoordinates, convection_coefficient: float
+  ) -> float:
+    r"""Returns the conductance from a CV to the ambient air in W/K.
+
+    On a face that opens onto the ambient the heat passes through the outer
+    half of the CV and then through the convective film, in series:
+
+    $$\sum_{f \in B_P} A_f \Gamma_{\infty,f} = \sum_{f \in B_P} A_f
+        \left[\frac{1}{h} + \frac{\ell_{P,f}}{2k_P}\right]^{-1}$$
+
+    Using $h$ on its own drops the conduction resistance of that outer half
+    cell, which overstates the exchange with the ambient - badly so for an
+    insulating exterior wall, where the half-cell resistance dominates the
+    film. $h$ is used only here; interior faces are pure conduction through
+    neighboring half cells.
+
+    The four directions are walked and only those without a neighbor count as
+    boundary faces, so a corner contributes two and an edge one without either
+    being hard coded.
+
+    Args:
+      cv_coordinates: 2-Tuple representing coordinates in building of CV.
+      convection_coefficient: Current wind convection coefficient (W/m2/K).
+
+    Returns:
+      The summed ambient conductance $\sum_f A_f \Gamma_{\infty,f}$ in W/K.
+    """
+    # Only the film resistance moves between time steps, so the areas and
+    # half-cell resistances of the boundary faces are resolved once per CV.
+    faces = self._ambient_face_cache.get(cv_coordinates)
+    if faces is None:
+      x, y = cv_coordinates
+      z = self.building.floor_height_cm / 100.0
+      u, v = self._get_cv_dimensions(cv_coordinates)
+      conductivity = self.building.conductivity[x][y]
+      neighbors = {tuple(n) for n in self.building.neighbors[x][y]}
+      faces = tuple(
+          (area, length / (2.0 * conductivity))
+          for coordinates, length, area in (
+              ((x, y - 1), u, v * z),
+              ((x, y + 1), u, v * z),
+              ((x - 1, y), v, u * z),
+              ((x + 1, y), v, u * z),
+          )
+          if coordinates not in neighbors
+      )
+      self._ambient_face_cache[cv_coordinates] = faces
+
+    film_resistance = 1.0 / convection_coefficient
+    return sum(
+        area / (film_resistance + half_cell_resistance)
+        for area, half_cell_resistance in faces
+    )
+
+  def _get_boundary_cv_temp_estimate(
+      self,
+      cv_coordinates: CVCoordinates,
+      temperature_estimates: np.ndarray,
+      ambient_temperature: float,
+      convection_coefficient: float,
+  ) -> float:
+    r"""Returns the temperature estimate in K of a corner or edge CV.
+
+    Solves the energy balance of a boundary CV for its own temperature:
+
+    $$T_P = \frac{\sum_{f \in I_P} A_f \Gamma_f T_{N_f} +
+        \sum_{f \in B_P} A_f \Gamma_{\infty,f} T_\infty +
+        \frac{\rho c\, u v z}{\Delta t} T_P^{(-)}}
+        {\sum_{f \in I_P} A_f \Gamma_f + \sum_{f \in B_P} A_f
+        \Gamma_{\infty,f} + \frac{\rho c\, u v z}{\Delta t}}$$
+
+    Corner and edge CVs differ only in how many of their faces are open to
+    the ambient, which _get_ambient_conductance already accounts for, and in
+    how many axes are narrowed, which _get_cv_dimensions accounts for. Neither
+    count is hard coded here, so the same solver serves both.
+
+    Args:
+      cv_coordinates: 2-Tuple representing coordinates in building of CV.
+      temperature_estimates: Current temperature estimate for each CV.
+      ambient_temperature: Current temperature in K of external air.
+      convection_coefficient: Current wind convection coefficient (W/m2/K).
+
+    Returns:
+      The temperature estimate in K for the next time step.
+    """
+    x, y = cv_coordinates
+    z = self.building.floor_height_cm / 100.0
+    u, v = self._get_cv_dimensions(cv_coordinates)
+    storage = (
+        self.building.density[x][y]
+        * self.building.heat_capacity[x][y]
+        * u
+        * v
+        * z
+        / self._time_step_sec
+    )
+
+    neighbor_transfer = storage * self.building.temp[x][y]
+    denominator = storage
+
+    for nx, ny in self.building.neighbors[x][y]:
+      conductance = self._get_face_conductance(cv_coordinates, (nx, ny))
+      neighbor_transfer += conductance * temperature_estimates[nx][ny]
+      denominator += conductance
+
+    ambient_conductance = self._get_ambient_conductance(
+        cv_coordinates, convection_coefficient
+    )
+    neighbor_transfer += ambient_conductance * ambient_temperature
+    denominator += ambient_conductance
+
+    return neighbor_transfer / denominator
+
   def _get_corner_cv_temp_estimate(
       self,
       cv_coordinates: CVCoordinates,
@@ -171,31 +429,24 @@ class Simulator:
     r"""Returns temperature estimate for corner CV in K for next time step.
 
     A corner CV has two air neighbors and two faces exposed to the ambient
-    air. It represents one quarter of a full interior CV volume, which
-    introduces the factor of 1/4 in the storage term.
+    air. It is half width along both axes, $u = v = \delta_x / 2$, which is
+    what makes its volume one quarter of a full interior CV.
 
     **Energy Balance (corner CV)**
 
     Conduction from the two neighbors, convection from the two exposed faces,
     and transient storage over the 1/4 CV volume:
 
-    $$k \left(\frac{\delta_x z}{2}\right)
-        \frac{T_{n1} - T_{i,j}}{\delta_x}
-      + k \left(\frac{\delta_x z}{2}\right)
-        \frac{T_{n2} - T_{i,j}}{\delta_x}
-      + 2 h \left(\frac{\delta_x z}{2}\right) (T_{\text{amb}} - T_{i,j})
-      = \frac{\rho c \delta_x^2 z}{4 \Delta t}
+    $$\sum_{n=1}^{2} A_n \Gamma_n (T_n - T_{i,j})
+      + \sum_{f \in B_P} A_f \Gamma_{\infty,f} (T_{\text{amb}} - T_{i,j})
+      = \frac{\rho c\, u v z}{\Delta t}
         \left( T_{i,j} - T_{i,j}^{(-)} \right)$$
 
-    Solving for $T_{i,j}$ (the height $z$ cancels):
-
-    $$T_{i,j} = \frac{k (T_{n1} + T_{n2})
-        + 2 h \delta_x T_{\text{amb}} + t_0 T_{i,j}^{(-)}}
-        {2 k + 2 h \delta_x + t_0}$$
-
-    where the temporal parameter is:
-
-    $$t_0 = \frac{\rho c \delta_x^2}{2 \Delta t}$$
+    Each face conductance is built from the two half-cell resistances in
+    series, see _get_face_conductance, and each ambient face additionally puts
+    the convective film in series with the outer half cell, see
+    _get_ambient_conductance. Solving for $T_{i,j}$ gives the expression
+    evaluated by _get_boundary_cv_temp_estimate.
 
     Note:
       Exterior longwave radiation ($q_{\text{lwr}}$) and solar gains
@@ -206,16 +457,19 @@ class Simulator:
 
     - $T_{i,j}$: corner CV air temperature at new time step [K]
     - $T_{i,j}^{(-)}$: corner CV air temperature at previous time step [K]
-    - $T_{n1}, T_{n2}$: neighbor CV temperatures [K]
+    - $T_n$: neighbor CV temperatures [K]
     - $T_{\text{amb}}$: ambient (external) air temperature [K]
-    - $k$: thermal conductivity [$\mathrm{W/(m \cdot K)}$]
-    - $h$: convection coefficient [$\mathrm{W/(m^2 \cdot K)}$]
+    - $A_f$: face area, $vz$ for a left or right face and $uz$ for an above or
+      below face [$\mathrm{m^2}$]
+    - $\Gamma_f$: interior face conductance per unit area
+      [$\mathrm{W/(m^2 \cdot K)}$]
+    - $\Gamma_{\infty,f}$: ambient face conductance per unit area
+      [$\mathrm{W/(m^2 \cdot K)}$]
     - $\rho$: density [$\mathrm{kg/m^3}$]
     - $c$: specific heat capacity [$\mathrm{J/(kg \cdot K)}$]
-    - $\delta_x$: spatial discretization (uniform CV size) [$\mathrm{m}$]
+    - $u, v$: horizontal and vertical CV extent [$\mathrm{m}$]
     - $z$: CV height (floor height) [$\mathrm{m}$]
     - $\Delta t$: time step [$\mathrm{s}$]
-    - $t_0$: temporal parameter [dimensionless]
 
     Args:
       cv_coordinates: 2-Tuple representing coordinates in building of CV.
@@ -224,14 +478,7 @@ class Simulator:
       convection_coefficient: Current wind convection coefficient (W/m2/K).
     """
     x, y = cv_coordinates
-    delta_x = self.building.cv_size_cm / 100.0
-    delta_t = self._time_step_sec
-    density = self.building.density[x][y]
-    conductivity = self.building.conductivity[x][y]
-    heat_capacity = self.building.heat_capacity[x][y]
-    last_temp = self.building.temp[x][y]
     neighbors = self.building.neighbors[x][y]
-    neighbor_temps = [temperature_estimates[nx][ny] for nx, ny in neighbors]
 
     # Ensure corner CV.
     if len(neighbors) != 2:
@@ -241,19 +488,12 @@ class Simulator:
           'This indicates an invalid building structure.'
       )
 
-    t0 = density * delta_x**2 * heat_capacity / delta_t / 2.0
-    retained_heat = t0 * last_temp
-    neighbor_transfer = conductivity * sum(neighbor_temps)
-    convection_transfer = (
-        2.0 * convection_coefficient * delta_x * ambient_temperature
+    return self._get_boundary_cv_temp_estimate(
+        cv_coordinates,
+        temperature_estimates,
+        ambient_temperature,
+        convection_coefficient,
     )
-    denominator = (
-        2.0 * conductivity + 2.0 * convection_coefficient * delta_x + t0
-    )
-
-    return (
-        neighbor_transfer + convection_transfer + retained_heat
-    ) / denominator
 
   def _get_edge_cv_temp_estimate(
       self,
@@ -265,36 +505,27 @@ class Simulator:
     r"""Returns temperature estimate for edge CV in K for next time step.
 
     An edge CV has three air neighbors and one face exposed to the ambient
-    air. It represents one half of a full interior CV volume, which introduces
-    the factor of 1/2 in the storage term.
+    air. It is half width along the axis that faces the ambient, which is what
+    makes its volume one half of a full interior CV.
 
     **Energy Balance (edge CV)**
 
-    Conduction from the three neighbors (each face weighted by a geometric
-    factor $f_n$, see below), convection from the single exposed face, and
-    transient storage over the 1/2 CV volume:
+    Conduction from the three neighbors, convection from the single exposed
+    face, and transient storage over the 1/2 CV volume:
 
-    $$\sum_{n=1}^{3} f_n\, k (\delta_x z)
-        \frac{T_n - T_{i,j}}{\delta_x}
-      + h (\delta_x z) (T_{\text{amb}} - T_{i,j})
-      = \frac{\rho c \delta_x^2 z}{2 \Delta t}
+    $$\sum_{n=1}^{3} A_n \Gamma_n (T_n - T_{i,j})
+      + A_f \Gamma_{\infty,f} (T_{\text{amb}} - T_{i,j})
+      = \frac{\rho c\, u v z}{\Delta t}
         \left( T_{i,j} - T_{i,j}^{(-)} \right)$$
 
-    Solving for $T_{i,j}$ (the height $z$ cancels):
-
-    $$T_{i,j} = \frac{k \sum_{n=1}^{3} (f_n T_n)
-        + h \delta_x T_{\text{amb}} + t_0 T_{i,j}^{(-)}}
-        {2 k + h \delta_x + t_0}$$
-
-    where the temporal parameter is:
-
-    $$t_0 = \frac{\rho c \delta_x^2}{2 \Delta t}$$
-
-    Conduction face factor $f_n$:
-      A neighbor that is itself a boundary CV (corner or edge, i.e. fewer than
-      4 neighbors) shares a half-length face with this edge CV, so its
-      conduction contribution is weighted by $f_n = 0.5$; interior neighbors
-      use $f_n = 1.0$. This is implemented as `edge_factor` below.
+    Being half width along one axis also shrinks the two faces whose area is
+    measured along that axis, so those neighbors are reached across half the
+    area that the neighbor opposite the ambient is. Each face conductance is
+    built from the two half-cell resistances in series and from the area the
+    two CVs share, see _get_face_conductance, and the ambient face
+    additionally puts the convective film in series with the outer half cell,
+    see _get_ambient_conductance. Solving for $T_{i,j}$ gives the expression
+    evaluated by _get_boundary_cv_temp_estimate.
 
     Note:
       Exterior longwave radiation ($q_{\text{lwr}}$) and solar gains
@@ -306,17 +537,18 @@ class Simulator:
     - $T_{i,j}$: edge CV air temperature at new time step [K]
     - $T_{i,j}^{(-)}$: edge CV air temperature at previous time step [K]
     - $T_n$: neighbor CV temperatures [K]
-    - $f_n$: conduction face factor (0.5 for boundary neighbors, 1.0 for
-      interior neighbors) [dimensionless]
     - $T_{\text{amb}}$: ambient (external) air temperature [K]
-    - $k$: thermal conductivity [$\mathrm{W/(m \cdot K)}$]
-    - $h$: convection coefficient [$\mathrm{W/(m^2 \cdot K)}$]
+    - $A_f$: face area, $vz$ for a left or right face and $uz$ for an above or
+      below face [$\mathrm{m^2}$]
+    - $\Gamma_f$: interior face conductance per unit area
+      [$\mathrm{W/(m^2 \cdot K)}$]
+    - $\Gamma_{\infty,f}$: ambient face conductance per unit area
+      [$\mathrm{W/(m^2 \cdot K)}$]
     - $\rho$: density [$\mathrm{kg/m^3}$]
     - $c$: specific heat capacity [$\mathrm{J/(kg \cdot K)}$]
-    - $\delta_x$: spatial discretization (uniform CV size) [$\mathrm{m}$]
+    - $u, v$: horizontal and vertical CV extent [$\mathrm{m}$]
     - $z$: CV height (floor height) [$\mathrm{m}$]
     - $\Delta t$: time step [$\mathrm{s}$]
-    - $t_0$: temporal parameter [dimensionless]
 
     Args:
       cv_coordinates: 2-Tuple representing coordinates in building of CV.
@@ -325,14 +557,7 @@ class Simulator:
       convection_coefficient: Current wind convection coefficient (W/m2/K).
     """
     x, y = cv_coordinates
-    delta_x = self.building.cv_size_cm / 100.0
-    delta_t = self._time_step_sec
-    density = self.building.density[x][y]
-    conductivity = self.building.conductivity[x][y]
-    heat_capacity = self.building.heat_capacity[x][y]
-    last_temp = self.building.temp[x][y]
     neighbors = self.building.neighbors[x][y]
-    neighbor_temps = [temperature_estimates[nx][ny] for nx, ny in neighbors]
 
     # Ensure edge CV.
     if len(neighbors) != 3:
@@ -342,26 +567,12 @@ class Simulator:
           'This indicates an invalid building structure.'
       )
 
-    t0 = density * delta_x**2 / 2 * heat_capacity / delta_t
-    retained_heat = t0 * last_temp
-
-    # Edges and corners are multiplied by 0.5, others by 1.0
-    edge_factor = [
-        0.5 if len(self.building.neighbors[nx][ny]) < 4 else 1.0
-        for nx, ny in neighbors
-    ]
-
-    neighbor_transfer = conductivity * sum(
-        [f * n for f, n in zip(edge_factor, neighbor_temps)]
+    return self._get_boundary_cv_temp_estimate(
+        cv_coordinates,
+        temperature_estimates,
+        ambient_temperature,
+        convection_coefficient,
     )
-
-    convection_transfer = convection_coefficient * delta_x * ambient_temperature
-
-    denominator = 2.0 * conductivity + convection_coefficient * delta_x + t0
-
-    return (
-        neighbor_transfer + convection_transfer + retained_heat
-    ) / denominator
 
   def _get_interior_cv_temp_estimate(
       self, cv_coordinates: CVCoordinates, temperature_estimates: np.ndarray
@@ -379,14 +590,16 @@ class Simulator:
     is given by:
 
     $$\begin{multline}
-      k_1 (v z) \frac{T_{i-1,j} - T_{i,j}}{u} +
-      k_2 (u z) \frac{T_{i,j-1} - T_{i,j}}{v} +
-      k_3 (v z) \frac{T_{i+1,j} - T_{i,j}}{u} +
-      k_4 (u z) \frac{T_{i,j+1} - T_{i,j}}{v} \\
+      \sum_{f \in I_P} A_f \Gamma_f \left( T_{N_f} - T_{i,j} \right)
       + Q_x + \frac{k_{\text{mass}} u v}{z}
       (T_{\text{mass},i,j} - T_{i,j}) + q_{\text{lwx}} (u z) =
       \frac{\rho c u v z}{\Delta t} \left( T_{i,j} - T_{i,j}^{(-)} \right)
       \end{multline}$$
+
+    Each face conductance $A_f \Gamma_f$ is built from the half cell on either
+    side of the face in series, see _get_face_conductance. An interior CV has
+    all four neighbors, so none of its faces is open to the ambient and no
+    convective film appears here.
 
     Here $q_{\text{lwx}}$ is a heat flux [W/m^2] and $q_{\text{lwx}} (u z)$ is
     the corresponding power [W] entering the CV through the wall face of area
@@ -398,70 +611,64 @@ class Simulator:
     h_{\text{lwx}} T_{i,j}$; the $h_{\text{lwx}} T_{i,j}$ part moves onto the
     denominator alongside the other terms in $T_{i,j}$.
 
-    Solving for $T_{i,j}$ with uniform spacing ($u = v = \delta_x$) and uniform
-    conductivity ($k_1 = k_2 = k_3 = k_4 = k$):
+    An interior CV has uniform spacing ($u = v = \delta_x$), so with
+    $A_1 = A_3 = vz$ and $A_2 = A_4 = uz$ the balance solves to
 
-    $$T_{i,j} = \frac{\sum_{\text{neighbors}} T_{\text{neighbor}} +
-      \frac{Q_x}{z k} + \frac{k_{\text{mass}} \delta_x^2}{z^2 k}
-      T_{\text{mass},i,j}+\frac{q_\text{lwx}^{(0)}\, \delta_x}{k}
-      + t_0 T_{i,j}^{(-)}}
-      {4 + \frac{k_{\text{mass}} \delta_x^2}{z^2 k}
-      + \frac{h_\text{lwx}\, \delta_x}{k} + t_0}$$
+    $$T_{i,j} = \frac{\sum_{f \in I_P} A_f \Gamma_f T_{N_f} + Q_x +
+      \frac{k_{\text{mass}} \delta_x^2}{z} T_{\text{mass},i,j} +
+      q_\text{lwx}^{(0)}\, \delta_x z + t_0 T_{i,j}^{(-)}}
+      {\sum_{f \in I_P} A_f \Gamma_f + \frac{k_{\text{mass}} \delta_x^2}{z}
+      + h_\text{lwx}\, \delta_x z + t_0}$$
 
-    The $q_{\text{lwx}}$ terms match the implementation, which scales the
-    exchange coefficient and driving flux by `delta_x / conductivity`, the
-    same normalization applied to $Q_x$ (there via `/ z` folded into the
-    $\frac{Q_x}{zk}$ term above).
+    where the storage term is
 
-    where the temporal parameter is:
+    $$t_0 = \frac{\rho c \delta_x^2 z}{\Delta t}.$$
 
-    $$t_0 = \frac{\rho c \delta_x^2}{k \Delta t} =
-      \frac{\delta_x^2}{\Delta t \cdot \alpha}$$
-
-    and the thermal diffusivity is:
-
-    $$\alpha = \frac{k}{\rho c}$$
+    The balance is kept in W rather than divided through by the CV's own
+    conductivity. Dividing through was what produced the bare $4$ in the old
+    denominator, and it is only available while one conductivity is common to
+    all four faces, which $\Gamma_f$ no longer assumes.
 
     **Nomenclature and Units**
 
     - $T_{i,j}$: Air temperature at CV $(i,j)$ at new time step [K]
     - $T_{i,j}^{(-)}$: Air temperature at CV $(i,j)$ at previous time step [K]
     - $T_{\text{mass},i,j}$: Interior mass temperature at CV $(i,j)$ [K]
-    - $T_{i-1,j}, T_{i+1,j}, T_{i,j-1}, T_{i,j+1}$: Neighbor CV temperatures
-      (left, right, bottom, top) [K]
-    - $k_1, k_2, k_3, k_4$: Thermal conductivity for left, bottom, right, top
-      faces [$\mathrm{W/(m \cdot K)}$]
-    - $k$: Thermal conductivity (uniform assumption) [$\mathrm{W/(m \cdot K)}$]
+    - $T_{N_f}$: Neighbor CV temperature across face $f$ [K]
+    - $I_P$: The four interior faces of CV $(i,j)$
+    - $A_f$: Area shared across face $f$ [$\mathrm{m^2}$]
+    - $\Gamma_f$: Interior face conductance per unit area
+      [$\mathrm{W/(m^2 \cdot K)}$]
     - $k_{\text{mass}}$: Thermal conductivity of interior mass
       [$\mathrm{W/(m \cdot K)}$]
     - $Q_x$: External heat source (e.g., diffuser) [$\mathrm{W}$]
     - $q_{\text{lwx}}$: Interior longwave radiative heat flux
       [$\mathrm{W/m^2}$]
-    - $u, v$: CV dimensions in x and y directions [$\mathrm{m}$]
-    - $\delta_x$: Spatial discretization (uniform CV size) [$\mathrm{m}$]
+    - $u, v$: CV extent along each axis [$\mathrm{m}$]
+    - $\delta_x$: Grid spacing (uniform CV size) [$\mathrm{m}$]
     - $z$: CV height (floor height) [$\mathrm{m}$]
     - $\rho$: Density [$\mathrm{kg/m^3}$]
     - $c$: Specific heat capacity [$\mathrm{J/(kg \cdot K)}$]
-    - $\alpha$: Thermal diffusivity [$\mathrm{m^2/s}$]
     - $\Delta t$: Time step [$\mathrm{s}$]
-    - $t_0$: Temporal parameter [dimensionless]
+    - $t_0$: Storage conductance [$\mathrm{W/K}$]
 
     Args:
       cv_coordinates: 2-Tuple representing coordinates in building of CV.
       temperature_estimates: Current temperature estimate for each CV.
+
+    Returns:
+      The temperature estimate in K for the next time step.
     """
     x, y = cv_coordinates
     delta_x = self.building.cv_size_cm / 100.0
     delta_t = self._time_step_sec
     z = self.building.floor_height_cm / 100.0
     density = self.building.density[x][y]
-    conductivity = self.building.conductivity[x][y]
 
     heat_capacity = self.building.heat_capacity[x][y]
     last_temp = self.building.temp[x][y]
     input_q = self.building.input_q[x][y]
     neighbors = self.building.neighbors[x][y]
-    neighbor_temps = [temperature_estimates[nx][ny] for nx, ny in neighbors]
     # Ensure interior CV.
     if len(neighbors) != 4:
       raise ValueError(
@@ -470,15 +677,19 @@ class Simulator:
           ' an invalid building structure.'
       )
 
-    alpha = conductivity / density / heat_capacity
+    t0 = density * heat_capacity * delta_x**2 * z / delta_t
 
-    t0 = delta_x**2 / delta_t / alpha
+    neighbor_transfer = 0.0
+    denominator = t0
 
-    neighbor_transfer = sum(neighbor_temps)
+    for nx, ny in neighbors:
+      conductance = self._get_face_conductance(cv_coordinates, (nx, ny))
+      neighbor_transfer += conductance * temperature_estimates[nx][ny]
+      denominator += conductance
 
     retained_heat = t0 * last_temp
 
-    thermal_source = input_q / conductivity / z
+    thermal_source = input_q
 
     # Interior mass heat transfer (adiabatic node connected only to air CV)
     if (
@@ -489,24 +700,13 @@ class Simulator:
       interior_mass_conductivity = self.building.interior_mass_conductivity[x][
           y
       ]
-      denominator = (
-          4.0
-          + interior_mass_conductivity * delta_x**2 / conductivity / z**2
-          + t0
-      )
+      interior_mass_conductance = interior_mass_conductivity * delta_x**2 / z
+      denominator += interior_mass_conductance
 
       # Heat transfer between air CV and its interior mass node
       interior_mass_temp = self.building.interior_mass_temp[x, y]
       # Heat flux from interior mass to air CV
-      neighbor_transfer += (
-          interior_mass_temp
-          * delta_x**2
-          * interior_mass_conductivity
-          / conductivity
-          / z**2
-      )
-    else:
-      denominator = 4.0 + t0
+      neighbor_transfer += interior_mass_temp * interior_mass_conductance
 
     # Interior longwave radiation, split into the part that scales with this
     # CV's own temperature and the part driven by the rest of the enclosure.
@@ -520,19 +720,19 @@ class Simulator:
       # q_lwx_idx is -1 if the CV does not have LWX
       q_lwx_idx = self.building.lwx_index[x, y]
       if q_lwx_idx != -1:
-        norm = delta_x / conductivity
+        area = delta_x * z
         if is_wall_node[q_lwx_idx]:
           # This CV's temperature is the one the surface radiates at, so its
           # own term belongs on the diagonal.
-          denominator += coefficient[q_lwx_idx] * norm
-          q_lwx = driving[q_lwx_idx] * norm
+          denominator += coefficient[q_lwx_idx] * area
+          q_lwx = driving[q_lwx_idx] * area
         else:
           # An interior mass node radiates at its mass temperature, which this
           # balance does not solve for, so recover the explicit flux.
           node_temp = self.building.interior_mass_temp[x, y]
           q_lwx = (
               driving[q_lwx_idx] - coefficient[q_lwx_idx] * node_temp
-          ) * norm
+          ) * area
 
     return (
         neighbor_transfer + thermal_source + retained_heat + q_lwx
@@ -585,8 +785,8 @@ class Simulator:
     The exchange couples every surface of an enclosure to every other, so
     evaluating it costs a dense matrix product over the enclosure. Asking for
     it once per CV, as this used to, repeats that product once for every CV in
-    the grid and throws most of the answer away. One product per sweep is
-    enough.
+    the grid and throws most of the answer away; on a 23x12 grid with 146
+    enclosure nodes it was 71% of a sweep. One product per sweep is enough.
 
     Doing it once per sweep evaluates the exchange at the field as it stood
     when the sweep started rather than at the partially updated field, so the
@@ -633,8 +833,8 @@ class Simulator:
       convection_coefficient: Current wind convection coefficient (W/m2/K).
 
     Returns:
-      Maximum difference in temperture_estimates across all CVs before and after
-      operation.
+      A pair: the updated temperature estimates, and the largest change any CV
+      saw over this sweep.
     """
     nrows, ncols = temperature_estimates.shape
     max_delta = 0.0
@@ -838,6 +1038,13 @@ class Simulator:
         and self.building.include_interior_mass
     )
 
+    if include_interior_mass:
+      # Interior mass temperature at the start of the step. Every iteration
+      # re-solves the mass node from this value, so the mass advances once per
+      # time step rather than once per iteration.
+      interior_mass_temp_last_step = self.building.interior_mass_temp.copy()
+      interior_mass_temp_estimate = interior_mass_temp_last_step.copy()
+
     converged_successfully = False
     for iteration_count in range(self._iteration_limit):
       # Update air CV temperatures
@@ -850,10 +1057,17 @@ class Simulator:
       # Update interior mass temperatures if enabled
       if include_interior_mass:
         # Update interior mass temperatures based on current air temperature
-        # estimates
-        interior_mass_temp_estimate, max_delta_mass = (
-            self.update_interior_mass_temperatures(temp_estimate)
+        # estimates, always starting from the previous time step's value.
+        self.building.interior_mass_temp = interior_mass_temp_last_step
+        interior_mass_temp_update, _ = self.update_interior_mass_temperatures(
+            temp_estimate
         )
+        # The convergence check tracks how much the estimate still moves from
+        # one iteration to the next, not how much the mass moves over the step.
+        max_delta_mass = np.max(
+            np.abs(interior_mass_temp_update - interior_mass_temp_estimate)
+        )
+        interior_mass_temp_estimate = interior_mass_temp_update
         # Store the updated interior mass temperatures
         self.building.interior_mass_temp = interior_mass_temp_estimate
 
