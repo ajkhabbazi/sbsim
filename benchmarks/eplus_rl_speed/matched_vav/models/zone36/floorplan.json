@@ -1,0 +1,2626 @@
+{
+  "spec": {
+    "zones": 36,
+    "columns": null,
+    "room_width_m": 5.0,
+    "room_depth_m": 4.0,
+    "height_m": 3.0,
+    "wall_thickness_m": 0.5,
+    "cv_size_m": 0.5,
+    "window_width_m": 2
+  },
+  "run_day": "2024-07-15",
+  "energyplus_version": "24.2",
+  "timestep_seconds": 300,
+  "grid_shape": [
+    57,
+    69
+  ],
+  "grid_cells": 3933,
+  "rooms": [
+    {
+      "name": "room_1",
+      "bounds_m": [
+        0.5,
+        23.0,
+        5.5,
+        27.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            0.5,
+            23.0
+          ],
+          "end_m": [
+            5.5,
+            23.0
+          ],
+          "neighbor": "room_7",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            5.5,
+            23.0
+          ],
+          "end_m": [
+            5.5,
+            27.0
+          ],
+          "neighbor": "room_2",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            5.5,
+            27.0
+          ],
+          "end_m": [
+            0.5,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "south",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "west",
+          "start_m": [
+            0.5,
+            27.0
+          ],
+          "end_m": [
+            0.5,
+            23.0
+          ],
+          "neighbor": null,
+          "opposite_side": "east",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        }
+      ]
+    },
+    {
+      "name": "room_2",
+      "bounds_m": [
+        6.0,
+        23.0,
+        11.0,
+        27.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            6.0,
+            23.0
+          ],
+          "end_m": [
+            11.0,
+            23.0
+          ],
+          "neighbor": "room_8",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            11.0,
+            23.0
+          ],
+          "end_m": [
+            11.0,
+            27.0
+          ],
+          "neighbor": "room_3",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            11.0,
+            27.0
+          ],
+          "end_m": [
+            6.0,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "south",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "west",
+          "start_m": [
+            6.0,
+            27.0
+          ],
+          "end_m": [
+            6.0,
+            23.0
+          ],
+          "neighbor": "room_1",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_3",
+      "bounds_m": [
+        11.5,
+        23.0,
+        16.5,
+        27.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            11.5,
+            23.0
+          ],
+          "end_m": [
+            16.5,
+            23.0
+          ],
+          "neighbor": "room_9",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            16.5,
+            23.0
+          ],
+          "end_m": [
+            16.5,
+            27.0
+          ],
+          "neighbor": "room_4",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            16.5,
+            27.0
+          ],
+          "end_m": [
+            11.5,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "south",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "west",
+          "start_m": [
+            11.5,
+            27.0
+          ],
+          "end_m": [
+            11.5,
+            23.0
+          ],
+          "neighbor": "room_2",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_4",
+      "bounds_m": [
+        17.0,
+        23.0,
+        22.0,
+        27.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            17.0,
+            23.0
+          ],
+          "end_m": [
+            22.0,
+            23.0
+          ],
+          "neighbor": "room_10",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            22.0,
+            23.0
+          ],
+          "end_m": [
+            22.0,
+            27.0
+          ],
+          "neighbor": "room_5",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            22.0,
+            27.0
+          ],
+          "end_m": [
+            17.0,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "south",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "west",
+          "start_m": [
+            17.0,
+            27.0
+          ],
+          "end_m": [
+            17.0,
+            23.0
+          ],
+          "neighbor": "room_3",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_5",
+      "bounds_m": [
+        22.5,
+        23.0,
+        27.5,
+        27.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            22.5,
+            23.0
+          ],
+          "end_m": [
+            27.5,
+            23.0
+          ],
+          "neighbor": "room_11",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            27.5,
+            23.0
+          ],
+          "end_m": [
+            27.5,
+            27.0
+          ],
+          "neighbor": "room_6",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            27.5,
+            27.0
+          ],
+          "end_m": [
+            22.5,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "south",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "west",
+          "start_m": [
+            22.5,
+            27.0
+          ],
+          "end_m": [
+            22.5,
+            23.0
+          ],
+          "neighbor": "room_4",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_6",
+      "bounds_m": [
+        28.0,
+        23.0,
+        33.0,
+        27.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            28.0,
+            23.0
+          ],
+          "end_m": [
+            33.0,
+            23.0
+          ],
+          "neighbor": "room_12",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            33.0,
+            23.0
+          ],
+          "end_m": [
+            33.0,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "west",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "north",
+          "start_m": [
+            33.0,
+            27.0
+          ],
+          "end_m": [
+            28.0,
+            27.0
+          ],
+          "neighbor": null,
+          "opposite_side": "south",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "west",
+          "start_m": [
+            28.0,
+            27.0
+          ],
+          "end_m": [
+            28.0,
+            23.0
+          ],
+          "neighbor": "room_5",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_7",
+      "bounds_m": [
+        0.5,
+        18.5,
+        5.5,
+        22.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            0.5,
+            18.5
+          ],
+          "end_m": [
+            5.5,
+            18.5
+          ],
+          "neighbor": "room_13",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            5.5,
+            18.5
+          ],
+          "end_m": [
+            5.5,
+            22.5
+          ],
+          "neighbor": "room_8",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            5.5,
+            22.5
+          ],
+          "end_m": [
+            0.5,
+            22.5
+          ],
+          "neighbor": "room_1",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            0.5,
+            22.5
+          ],
+          "end_m": [
+            0.5,
+            18.5
+          ],
+          "neighbor": null,
+          "opposite_side": "east",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        }
+      ]
+    },
+    {
+      "name": "room_8",
+      "bounds_m": [
+        6.0,
+        18.5,
+        11.0,
+        22.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            6.0,
+            18.5
+          ],
+          "end_m": [
+            11.0,
+            18.5
+          ],
+          "neighbor": "room_14",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            11.0,
+            18.5
+          ],
+          "end_m": [
+            11.0,
+            22.5
+          ],
+          "neighbor": "room_9",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            11.0,
+            22.5
+          ],
+          "end_m": [
+            6.0,
+            22.5
+          ],
+          "neighbor": "room_2",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            6.0,
+            22.5
+          ],
+          "end_m": [
+            6.0,
+            18.5
+          ],
+          "neighbor": "room_7",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_9",
+      "bounds_m": [
+        11.5,
+        18.5,
+        16.5,
+        22.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            11.5,
+            18.5
+          ],
+          "end_m": [
+            16.5,
+            18.5
+          ],
+          "neighbor": "room_15",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            16.5,
+            18.5
+          ],
+          "end_m": [
+            16.5,
+            22.5
+          ],
+          "neighbor": "room_10",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            16.5,
+            22.5
+          ],
+          "end_m": [
+            11.5,
+            22.5
+          ],
+          "neighbor": "room_3",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            11.5,
+            22.5
+          ],
+          "end_m": [
+            11.5,
+            18.5
+          ],
+          "neighbor": "room_8",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_10",
+      "bounds_m": [
+        17.0,
+        18.5,
+        22.0,
+        22.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            17.0,
+            18.5
+          ],
+          "end_m": [
+            22.0,
+            18.5
+          ],
+          "neighbor": "room_16",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            22.0,
+            18.5
+          ],
+          "end_m": [
+            22.0,
+            22.5
+          ],
+          "neighbor": "room_11",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            22.0,
+            22.5
+          ],
+          "end_m": [
+            17.0,
+            22.5
+          ],
+          "neighbor": "room_4",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            17.0,
+            22.5
+          ],
+          "end_m": [
+            17.0,
+            18.5
+          ],
+          "neighbor": "room_9",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_11",
+      "bounds_m": [
+        22.5,
+        18.5,
+        27.5,
+        22.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            22.5,
+            18.5
+          ],
+          "end_m": [
+            27.5,
+            18.5
+          ],
+          "neighbor": "room_17",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            27.5,
+            18.5
+          ],
+          "end_m": [
+            27.5,
+            22.5
+          ],
+          "neighbor": "room_12",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            27.5,
+            22.5
+          ],
+          "end_m": [
+            22.5,
+            22.5
+          ],
+          "neighbor": "room_5",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            22.5,
+            22.5
+          ],
+          "end_m": [
+            22.5,
+            18.5
+          ],
+          "neighbor": "room_10",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_12",
+      "bounds_m": [
+        28.0,
+        18.5,
+        33.0,
+        22.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            28.0,
+            18.5
+          ],
+          "end_m": [
+            33.0,
+            18.5
+          ],
+          "neighbor": "room_18",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            33.0,
+            18.5
+          ],
+          "end_m": [
+            33.0,
+            22.5
+          ],
+          "neighbor": null,
+          "opposite_side": "west",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "north",
+          "start_m": [
+            33.0,
+            22.5
+          ],
+          "end_m": [
+            28.0,
+            22.5
+          ],
+          "neighbor": "room_6",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            28.0,
+            22.5
+          ],
+          "end_m": [
+            28.0,
+            18.5
+          ],
+          "neighbor": "room_11",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_13",
+      "bounds_m": [
+        0.5,
+        14.0,
+        5.5,
+        18.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            0.5,
+            14.0
+          ],
+          "end_m": [
+            5.5,
+            14.0
+          ],
+          "neighbor": "room_19",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            5.5,
+            14.0
+          ],
+          "end_m": [
+            5.5,
+            18.0
+          ],
+          "neighbor": "room_14",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            5.5,
+            18.0
+          ],
+          "end_m": [
+            0.5,
+            18.0
+          ],
+          "neighbor": "room_7",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            0.5,
+            18.0
+          ],
+          "end_m": [
+            0.5,
+            14.0
+          ],
+          "neighbor": null,
+          "opposite_side": "east",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        }
+      ]
+    },
+    {
+      "name": "room_14",
+      "bounds_m": [
+        6.0,
+        14.0,
+        11.0,
+        18.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            6.0,
+            14.0
+          ],
+          "end_m": [
+            11.0,
+            14.0
+          ],
+          "neighbor": "room_20",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            11.0,
+            14.0
+          ],
+          "end_m": [
+            11.0,
+            18.0
+          ],
+          "neighbor": "room_15",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            11.0,
+            18.0
+          ],
+          "end_m": [
+            6.0,
+            18.0
+          ],
+          "neighbor": "room_8",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            6.0,
+            18.0
+          ],
+          "end_m": [
+            6.0,
+            14.0
+          ],
+          "neighbor": "room_13",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_15",
+      "bounds_m": [
+        11.5,
+        14.0,
+        16.5,
+        18.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            11.5,
+            14.0
+          ],
+          "end_m": [
+            16.5,
+            14.0
+          ],
+          "neighbor": "room_21",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            16.5,
+            14.0
+          ],
+          "end_m": [
+            16.5,
+            18.0
+          ],
+          "neighbor": "room_16",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            16.5,
+            18.0
+          ],
+          "end_m": [
+            11.5,
+            18.0
+          ],
+          "neighbor": "room_9",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            11.5,
+            18.0
+          ],
+          "end_m": [
+            11.5,
+            14.0
+          ],
+          "neighbor": "room_14",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_16",
+      "bounds_m": [
+        17.0,
+        14.0,
+        22.0,
+        18.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            17.0,
+            14.0
+          ],
+          "end_m": [
+            22.0,
+            14.0
+          ],
+          "neighbor": "room_22",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            22.0,
+            14.0
+          ],
+          "end_m": [
+            22.0,
+            18.0
+          ],
+          "neighbor": "room_17",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            22.0,
+            18.0
+          ],
+          "end_m": [
+            17.0,
+            18.0
+          ],
+          "neighbor": "room_10",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            17.0,
+            18.0
+          ],
+          "end_m": [
+            17.0,
+            14.0
+          ],
+          "neighbor": "room_15",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_17",
+      "bounds_m": [
+        22.5,
+        14.0,
+        27.5,
+        18.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            22.5,
+            14.0
+          ],
+          "end_m": [
+            27.5,
+            14.0
+          ],
+          "neighbor": "room_23",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            27.5,
+            14.0
+          ],
+          "end_m": [
+            27.5,
+            18.0
+          ],
+          "neighbor": "room_18",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            27.5,
+            18.0
+          ],
+          "end_m": [
+            22.5,
+            18.0
+          ],
+          "neighbor": "room_11",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            22.5,
+            18.0
+          ],
+          "end_m": [
+            22.5,
+            14.0
+          ],
+          "neighbor": "room_16",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_18",
+      "bounds_m": [
+        28.0,
+        14.0,
+        33.0,
+        18.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            28.0,
+            14.0
+          ],
+          "end_m": [
+            33.0,
+            14.0
+          ],
+          "neighbor": "room_24",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            33.0,
+            14.0
+          ],
+          "end_m": [
+            33.0,
+            18.0
+          ],
+          "neighbor": null,
+          "opposite_side": "west",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "north",
+          "start_m": [
+            33.0,
+            18.0
+          ],
+          "end_m": [
+            28.0,
+            18.0
+          ],
+          "neighbor": "room_12",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            28.0,
+            18.0
+          ],
+          "end_m": [
+            28.0,
+            14.0
+          ],
+          "neighbor": "room_17",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_19",
+      "bounds_m": [
+        0.5,
+        9.5,
+        5.5,
+        13.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            0.5,
+            9.5
+          ],
+          "end_m": [
+            5.5,
+            9.5
+          ],
+          "neighbor": "room_25",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            5.5,
+            9.5
+          ],
+          "end_m": [
+            5.5,
+            13.5
+          ],
+          "neighbor": "room_20",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            5.5,
+            13.5
+          ],
+          "end_m": [
+            0.5,
+            13.5
+          ],
+          "neighbor": "room_13",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            0.5,
+            13.5
+          ],
+          "end_m": [
+            0.5,
+            9.5
+          ],
+          "neighbor": null,
+          "opposite_side": "east",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        }
+      ]
+    },
+    {
+      "name": "room_20",
+      "bounds_m": [
+        6.0,
+        9.5,
+        11.0,
+        13.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            6.0,
+            9.5
+          ],
+          "end_m": [
+            11.0,
+            9.5
+          ],
+          "neighbor": "room_26",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            11.0,
+            9.5
+          ],
+          "end_m": [
+            11.0,
+            13.5
+          ],
+          "neighbor": "room_21",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            11.0,
+            13.5
+          ],
+          "end_m": [
+            6.0,
+            13.5
+          ],
+          "neighbor": "room_14",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            6.0,
+            13.5
+          ],
+          "end_m": [
+            6.0,
+            9.5
+          ],
+          "neighbor": "room_19",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_21",
+      "bounds_m": [
+        11.5,
+        9.5,
+        16.5,
+        13.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            11.5,
+            9.5
+          ],
+          "end_m": [
+            16.5,
+            9.5
+          ],
+          "neighbor": "room_27",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            16.5,
+            9.5
+          ],
+          "end_m": [
+            16.5,
+            13.5
+          ],
+          "neighbor": "room_22",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            16.5,
+            13.5
+          ],
+          "end_m": [
+            11.5,
+            13.5
+          ],
+          "neighbor": "room_15",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            11.5,
+            13.5
+          ],
+          "end_m": [
+            11.5,
+            9.5
+          ],
+          "neighbor": "room_20",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_22",
+      "bounds_m": [
+        17.0,
+        9.5,
+        22.0,
+        13.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            17.0,
+            9.5
+          ],
+          "end_m": [
+            22.0,
+            9.5
+          ],
+          "neighbor": "room_28",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            22.0,
+            9.5
+          ],
+          "end_m": [
+            22.0,
+            13.5
+          ],
+          "neighbor": "room_23",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            22.0,
+            13.5
+          ],
+          "end_m": [
+            17.0,
+            13.5
+          ],
+          "neighbor": "room_16",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            17.0,
+            13.5
+          ],
+          "end_m": [
+            17.0,
+            9.5
+          ],
+          "neighbor": "room_21",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_23",
+      "bounds_m": [
+        22.5,
+        9.5,
+        27.5,
+        13.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            22.5,
+            9.5
+          ],
+          "end_m": [
+            27.5,
+            9.5
+          ],
+          "neighbor": "room_29",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            27.5,
+            9.5
+          ],
+          "end_m": [
+            27.5,
+            13.5
+          ],
+          "neighbor": "room_24",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            27.5,
+            13.5
+          ],
+          "end_m": [
+            22.5,
+            13.5
+          ],
+          "neighbor": "room_17",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            22.5,
+            13.5
+          ],
+          "end_m": [
+            22.5,
+            9.5
+          ],
+          "neighbor": "room_22",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_24",
+      "bounds_m": [
+        28.0,
+        9.5,
+        33.0,
+        13.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            28.0,
+            9.5
+          ],
+          "end_m": [
+            33.0,
+            9.5
+          ],
+          "neighbor": "room_30",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            33.0,
+            9.5
+          ],
+          "end_m": [
+            33.0,
+            13.5
+          ],
+          "neighbor": null,
+          "opposite_side": "west",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "north",
+          "start_m": [
+            33.0,
+            13.5
+          ],
+          "end_m": [
+            28.0,
+            13.5
+          ],
+          "neighbor": "room_18",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            28.0,
+            13.5
+          ],
+          "end_m": [
+            28.0,
+            9.5
+          ],
+          "neighbor": "room_23",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_25",
+      "bounds_m": [
+        0.5,
+        5.0,
+        5.5,
+        9.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            0.5,
+            5.0
+          ],
+          "end_m": [
+            5.5,
+            5.0
+          ],
+          "neighbor": "room_31",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            5.5,
+            5.0
+          ],
+          "end_m": [
+            5.5,
+            9.0
+          ],
+          "neighbor": "room_26",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            5.5,
+            9.0
+          ],
+          "end_m": [
+            0.5,
+            9.0
+          ],
+          "neighbor": "room_19",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            0.5,
+            9.0
+          ],
+          "end_m": [
+            0.5,
+            5.0
+          ],
+          "neighbor": null,
+          "opposite_side": "east",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        }
+      ]
+    },
+    {
+      "name": "room_26",
+      "bounds_m": [
+        6.0,
+        5.0,
+        11.0,
+        9.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            6.0,
+            5.0
+          ],
+          "end_m": [
+            11.0,
+            5.0
+          ],
+          "neighbor": "room_32",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            11.0,
+            5.0
+          ],
+          "end_m": [
+            11.0,
+            9.0
+          ],
+          "neighbor": "room_27",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            11.0,
+            9.0
+          ],
+          "end_m": [
+            6.0,
+            9.0
+          ],
+          "neighbor": "room_20",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            6.0,
+            9.0
+          ],
+          "end_m": [
+            6.0,
+            5.0
+          ],
+          "neighbor": "room_25",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_27",
+      "bounds_m": [
+        11.5,
+        5.0,
+        16.5,
+        9.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            11.5,
+            5.0
+          ],
+          "end_m": [
+            16.5,
+            5.0
+          ],
+          "neighbor": "room_33",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            16.5,
+            5.0
+          ],
+          "end_m": [
+            16.5,
+            9.0
+          ],
+          "neighbor": "room_28",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            16.5,
+            9.0
+          ],
+          "end_m": [
+            11.5,
+            9.0
+          ],
+          "neighbor": "room_21",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            11.5,
+            9.0
+          ],
+          "end_m": [
+            11.5,
+            5.0
+          ],
+          "neighbor": "room_26",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_28",
+      "bounds_m": [
+        17.0,
+        5.0,
+        22.0,
+        9.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            17.0,
+            5.0
+          ],
+          "end_m": [
+            22.0,
+            5.0
+          ],
+          "neighbor": "room_34",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            22.0,
+            5.0
+          ],
+          "end_m": [
+            22.0,
+            9.0
+          ],
+          "neighbor": "room_29",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            22.0,
+            9.0
+          ],
+          "end_m": [
+            17.0,
+            9.0
+          ],
+          "neighbor": "room_22",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            17.0,
+            9.0
+          ],
+          "end_m": [
+            17.0,
+            5.0
+          ],
+          "neighbor": "room_27",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_29",
+      "bounds_m": [
+        22.5,
+        5.0,
+        27.5,
+        9.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            22.5,
+            5.0
+          ],
+          "end_m": [
+            27.5,
+            5.0
+          ],
+          "neighbor": "room_35",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            27.5,
+            5.0
+          ],
+          "end_m": [
+            27.5,
+            9.0
+          ],
+          "neighbor": "room_30",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            27.5,
+            9.0
+          ],
+          "end_m": [
+            22.5,
+            9.0
+          ],
+          "neighbor": "room_23",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            22.5,
+            9.0
+          ],
+          "end_m": [
+            22.5,
+            5.0
+          ],
+          "neighbor": "room_28",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_30",
+      "bounds_m": [
+        28.0,
+        5.0,
+        33.0,
+        9.0
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            28.0,
+            5.0
+          ],
+          "end_m": [
+            33.0,
+            5.0
+          ],
+          "neighbor": "room_36",
+          "opposite_side": "north",
+          "window": null
+        },
+        {
+          "side": "east",
+          "start_m": [
+            33.0,
+            5.0
+          ],
+          "end_m": [
+            33.0,
+            9.0
+          ],
+          "neighbor": null,
+          "opposite_side": "west",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "north",
+          "start_m": [
+            33.0,
+            9.0
+          ],
+          "end_m": [
+            28.0,
+            9.0
+          ],
+          "neighbor": "room_24",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            28.0,
+            9.0
+          ],
+          "end_m": [
+            28.0,
+            5.0
+          ],
+          "neighbor": "room_29",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_31",
+      "bounds_m": [
+        0.5,
+        0.5,
+        5.5,
+        4.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            0.5,
+            0.5
+          ],
+          "end_m": [
+            5.5,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "north",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "east",
+          "start_m": [
+            5.5,
+            0.5
+          ],
+          "end_m": [
+            5.5,
+            4.5
+          ],
+          "neighbor": "room_32",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            5.5,
+            4.5
+          ],
+          "end_m": [
+            0.5,
+            4.5
+          ],
+          "neighbor": "room_25",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            0.5,
+            4.5
+          ],
+          "end_m": [
+            0.5,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "east",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        }
+      ]
+    },
+    {
+      "name": "room_32",
+      "bounds_m": [
+        6.0,
+        0.5,
+        11.0,
+        4.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            6.0,
+            0.5
+          ],
+          "end_m": [
+            11.0,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "north",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "east",
+          "start_m": [
+            11.0,
+            0.5
+          ],
+          "end_m": [
+            11.0,
+            4.5
+          ],
+          "neighbor": "room_33",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            11.0,
+            4.5
+          ],
+          "end_m": [
+            6.0,
+            4.5
+          ],
+          "neighbor": "room_26",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            6.0,
+            4.5
+          ],
+          "end_m": [
+            6.0,
+            0.5
+          ],
+          "neighbor": "room_31",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_33",
+      "bounds_m": [
+        11.5,
+        0.5,
+        16.5,
+        4.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            11.5,
+            0.5
+          ],
+          "end_m": [
+            16.5,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "north",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "east",
+          "start_m": [
+            16.5,
+            0.5
+          ],
+          "end_m": [
+            16.5,
+            4.5
+          ],
+          "neighbor": "room_34",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            16.5,
+            4.5
+          ],
+          "end_m": [
+            11.5,
+            4.5
+          ],
+          "neighbor": "room_27",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            11.5,
+            4.5
+          ],
+          "end_m": [
+            11.5,
+            0.5
+          ],
+          "neighbor": "room_32",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_34",
+      "bounds_m": [
+        17.0,
+        0.5,
+        22.0,
+        4.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            17.0,
+            0.5
+          ],
+          "end_m": [
+            22.0,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "north",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "east",
+          "start_m": [
+            22.0,
+            0.5
+          ],
+          "end_m": [
+            22.0,
+            4.5
+          ],
+          "neighbor": "room_35",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            22.0,
+            4.5
+          ],
+          "end_m": [
+            17.0,
+            4.5
+          ],
+          "neighbor": "room_28",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            17.0,
+            4.5
+          ],
+          "end_m": [
+            17.0,
+            0.5
+          ],
+          "neighbor": "room_33",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_35",
+      "bounds_m": [
+        22.5,
+        0.5,
+        27.5,
+        4.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            22.5,
+            0.5
+          ],
+          "end_m": [
+            27.5,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "north",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "east",
+          "start_m": [
+            27.5,
+            0.5
+          ],
+          "end_m": [
+            27.5,
+            4.5
+          ],
+          "neighbor": "room_36",
+          "opposite_side": "west",
+          "window": null
+        },
+        {
+          "side": "north",
+          "start_m": [
+            27.5,
+            4.5
+          ],
+          "end_m": [
+            22.5,
+            4.5
+          ],
+          "neighbor": "room_29",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            22.5,
+            4.5
+          ],
+          "end_m": [
+            22.5,
+            0.5
+          ],
+          "neighbor": "room_34",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    },
+    {
+      "name": "room_36",
+      "bounds_m": [
+        28.0,
+        0.5,
+        33.0,
+        4.5
+      ],
+      "area_m2": 20.0,
+      "volume_m3": 60.0,
+      "walls": [
+        {
+          "side": "south",
+          "start_m": [
+            28.0,
+            0.5
+          ],
+          "end_m": [
+            33.0,
+            0.5
+          ],
+          "neighbor": null,
+          "opposite_side": "north",
+          "window": {
+            "offset_m": 1.5,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "east",
+          "start_m": [
+            33.0,
+            0.5
+          ],
+          "end_m": [
+            33.0,
+            4.5
+          ],
+          "neighbor": null,
+          "opposite_side": "west",
+          "window": {
+            "offset_m": 1.0,
+            "width_m": 2,
+            "sill_m": 0.6000000000000001,
+            "head_m": 2.4000000000000004
+          }
+        },
+        {
+          "side": "north",
+          "start_m": [
+            33.0,
+            4.5
+          ],
+          "end_m": [
+            28.0,
+            4.5
+          ],
+          "neighbor": "room_30",
+          "opposite_side": "south",
+          "window": null
+        },
+        {
+          "side": "west",
+          "start_m": [
+            28.0,
+            4.5
+          ],
+          "end_m": [
+            28.0,
+            0.5
+          ],
+          "neighbor": "room_35",
+          "opposite_side": "east",
+          "window": null
+        }
+      ]
+    }
+  ]
+}

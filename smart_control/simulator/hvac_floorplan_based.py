@@ -34,6 +34,8 @@ class FloorPlanBasedHvac:
       coordinates exogenously or not.
   """
 
+  _vav_type = vav.Vav
+
   def __init__(
       self,
       air_handler: air_handler_py.AirHandler,
@@ -88,7 +90,7 @@ class FloorPlanBasedHvac:
       )
       therm = thermostat.Thermostat(self._schedule)
       device_id = f"vav_{z}"
-      self._vavs[z] = vav.Vav(
+      self._vavs[z] = self._vav_type(
           self._vav_max_air_flow_rate,
           self._vav_reheat_max_water_flow_rate,
           therm,

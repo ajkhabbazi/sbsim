@@ -1,0 +1,436 @@
+{
+  "sections": [
+    "sac"
+  ],
+  "setup": {
+    "start_day": "2024-07-15",
+    "days": 7,
+    "zones": [
+      16,
+      36,
+      100
+    ],
+    "episode_steps": 2016,
+    "cv_size_m": 0.5,
+    "window_width_m": 2.0,
+    "epw": "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw",
+    "epw_sha256": "3cc3dc0c7bcc93e7203e8d9aab657d384315f5a0c86cdede23f792d437a0309f",
+    "platform": "cpu",
+    "jax_device": "cpu",
+    "jax": "0.4.34",
+    "host": "Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "energyplus_input_version": "24.2",
+    "cpu_affinity": [
+      6
+    ],
+    "seed": 0,
+    "collect_every": 96,
+    "updates": 8,
+    "batch_size": 256,
+    "grouped_method": "dense",
+    "effective_interior_mass": {
+      "capacity_per_m2": 30000.0,
+      "air_conductance_per_m2": 3.0,
+      "exposed_area_per_m2": 1.0,
+      "emissivity": 0.9
+    }
+  },
+  "sac": [
+    {
+      "zones": 16,
+      "engine": "full_jax",
+      "elapsed_s": 30.45254251699953,
+      "transitions_per_s": 66.2013688635229,
+      "timing_s": {
+        "environment_setup_s": 0.7726188740052748,
+        "learner_setup_s": 1.608896484001889,
+        "random_exploration_s": 0.0022763560118619353,
+        "action_transfer_s": 0.4296026160081965,
+        "replay_write_and_transfer_s": 0.23746690410916926,
+        "replay_sample_and_transfer_s": 0.16692099699866958,
+        "first_update_s": 1.9868538650043774,
+        "learner_update_s": 3.885178147989791,
+        "first_policy_s": 0.3218205650046002,
+        "policy_s": 1.6036880771207507,
+        "reset_s": 0.0012515950002125464,
+        "simulator_first_step_s": 0.009035374998347834,
+        "simulator_warm_s": 19.396931502771622,
+        "shutdown_s": 5.118999979458749e-06,
+        "other_s": 0.029996038974786643
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        0.0012515950002125464
+      ],
+      "simulator_mean_ms_per_vector_step": 9.62626873586681,
+      "simulator_ms_per_transition": 9.62626873586681,
+      "episode_comfort_returns": [
+        -5079.7735677957535
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 1.831618070602417,
+      "final_actor_loss": -6.876066207885742,
+      "final_alpha": 0.1902586817741394,
+      "thermal_nodes": 2945,
+      "mass_nodes": 1280,
+      "thermal_prepare_s": 0.7489929219955229,
+      "method": "cg"
+    },
+    {
+      "zones": 16,
+      "engine": "grouped_jax",
+      "elapsed_s": 8.657641063000483,
+      "transitions_per_s": 232.85788649931786,
+      "timing_s": {
+        "environment_setup_s": 0.32110437899973476,
+        "learner_setup_s": 0.019583066998166032,
+        "random_exploration_s": 0.0023594420272274874,
+        "action_transfer_s": 0.275134774914477,
+        "replay_write_and_transfer_s": 0.20130986206640955,
+        "replay_sample_and_transfer_s": 0.15705246099969372,
+        "first_update_s": 0.015603116000420414,
+        "learner_update_s": 2.0126159399951575,
+        "first_policy_s": 0.30104991299594985,
+        "policy_s": 0.9471985566488001,
+        "reset_s": 0.001247113999852445,
+        "simulator_first_step_s": 0.0039219310056068935,
+        "simulator_warm_s": 4.372220531920902,
+        "shutdown_s": 4.989000444766134e-06,
+        "other_s": 0.027234985427639913
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        0.001247113999852445
+      ],
+      "simulator_mean_ms_per_vector_step": 2.169836492268438,
+      "simulator_ms_per_transition": 2.169836492268438,
+      "episode_comfort_returns": [
+        -5126.295152664185
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 1.7655692100524902,
+      "final_actor_loss": -6.84480094909668,
+      "final_alpha": 0.1902591586112976,
+      "thermal_nodes": 129,
+      "mass_nodes": 16,
+      "thermal_prepare_s": 0.28992800600099145,
+      "method": "dense"
+    },
+    {
+      "zones": 16,
+      "engine": "energyplus",
+      "elapsed_s": 19.652233299995714,
+      "transitions_per_s": 102.58376079834345,
+      "timing_s": {
+        "environment_setup_s": 3.720576194995374,
+        "learner_setup_s": 0.016973388999758754,
+        "random_exploration_s": 0.0022468629831564613,
+        "action_transfer_s": 0.03927420013496885,
+        "replay_write_and_transfer_s": 0.2661808249395108,
+        "replay_sample_and_transfer_s": 0.1788762980067986,
+        "first_update_s": 0.015395474001707043,
+        "learner_update_s": 2.3915850019766367,
+        "observation_transfer_s": 0.9125939319492318,
+        "first_policy_s": 0.3293507790003787,
+        "policy_s": 1.323868464831321,
+        "reset_s": 2.5758883420057828,
+        "simulator_first_step_s": 0.0032144280048669316,
+        "simulator_warm_s": 6.296588372933911,
+        "shutdown_s": 1.5460248600065825,
+        "other_s": 0.03359587522572838
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        2.5758883420057828
+      ],
+      "simulator_mean_ms_per_vector_step": 3.1248577533170776,
+      "simulator_ms_per_transition": 3.1248577533170776,
+      "episode_comfort_returns": [
+        -73.16162979602814
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 0.26525968313217163,
+      "final_actor_loss": -9.156893730163574,
+      "final_alpha": 0.19026681780815125,
+      "energyplus_completion": [
+        "EnergyPlus Completed Successfully-- 0 Warning; 0 Severe Errors; Elapsed Time=00hr 00min 14.13sec"
+      ]
+    },
+    {
+      "zones": 36,
+      "engine": "full_jax",
+      "elapsed_s": 44.64331986300385,
+      "transitions_per_s": 45.1579319411384,
+      "timing_s": {
+        "environment_setup_s": 0.954604049999034,
+        "learner_setup_s": 0.7186547820019769,
+        "random_exploration_s": 0.002507777011487633,
+        "action_transfer_s": 0.46001234213326825,
+        "replay_write_and_transfer_s": 0.2655906318468624,
+        "replay_sample_and_transfer_s": 0.17425702599575743,
+        "first_update_s": 2.3085798120009713,
+        "learner_update_s": 4.322852644014347,
+        "first_policy_s": 0.36077880000084406,
+        "policy_s": 1.4517533158577862,
+        "reset_s": 0.0017395510003552772,
+        "simulator_first_step_s": 0.014894395004375838,
+        "simulator_warm_s": 33.58111130994803,
+        "shutdown_s": 7.430899859173223e-05,
+        "other_s": 0.025909117190167308
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        0.0017395510003552772
+      ],
+      "simulator_mean_ms_per_vector_step": 16.66556392553252,
+      "simulator_ms_per_transition": 16.66556392553252,
+      "episode_comfort_returns": [
+        -3898.72765186138
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 1.7900915145874023,
+      "final_actor_loss": -18.219215393066406,
+      "final_alpha": 0.1902599334716797,
+      "thermal_nodes": 6565,
+      "mass_nodes": 2880,
+      "thermal_prepare_s": 0.9017194589978317,
+      "method": "cg"
+    },
+    {
+      "zones": 36,
+      "engine": "grouped_jax",
+      "elapsed_s": 10.072585176996654,
+      "transitions_per_s": 200.14722780444248,
+      "timing_s": {
+        "environment_setup_s": 0.3290319619991351,
+        "learner_setup_s": 0.019482540999888442,
+        "random_exploration_s": 0.0023863049573265016,
+        "action_transfer_s": 0.2924412271386245,
+        "replay_write_and_transfer_s": 0.1980335711123189,
+        "replay_sample_and_transfer_s": 0.16103229999134783,
+        "first_update_s": 0.016430826995929237,
+        "learner_update_s": 2.3592689989018254,
+        "first_policy_s": 0.3329822790037724,
+        "policy_s": 1.003365574091731,
+        "reset_s": 0.0012211549983476289,
+        "simulator_first_step_s": 0.003768757000216283,
+        "simulator_warm_s": 5.327568956956384,
+        "shutdown_s": 4.408000677358359e-06,
+        "other_s": 0.025566314849129412
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        0.0012211549983476289
+      ],
+      "simulator_mean_ms_per_vector_step": 2.643954817348081,
+      "simulator_ms_per_transition": 2.643954817348081,
+      "episode_comfort_returns": [
+        -3850.7386290025897
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 1.7123572826385498,
+      "final_actor_loss": -18.234952926635742,
+      "final_alpha": 0.19026024639606476,
+      "thermal_nodes": 253,
+      "mass_nodes": 36,
+      "thermal_prepare_s": 0.27952860799996415,
+      "method": "dense"
+    },
+    {
+      "zones": 36,
+      "engine": "energyplus",
+      "elapsed_s": 14.663848852003866,
+      "transitions_per_s": 137.4809588087446,
+      "timing_s": {
+        "environment_setup_s": 2.5572919429978356,
+        "learner_setup_s": 0.013330918001884129,
+        "random_exploration_s": 0.0008483049896312878,
+        "action_transfer_s": 0.015514378894295078,
+        "replay_write_and_transfer_s": 0.10464698406576645,
+        "replay_sample_and_transfer_s": 0.10833437099063303,
+        "first_update_s": 0.01178078700468177,
+        "learner_update_s": 1.8439731159960502,
+        "observation_transfer_s": 0.3119518680105102,
+        "first_policy_s": 0.22076335799647495,
+        "policy_s": 0.48710152605053736,
+        "reset_s": 3.4912406999937957,
+        "simulator_first_step_s": 0.0035203060033381917,
+        "simulator_warm_s": 4.583211342789582,
+        "shutdown_s": 0.8930800309972255,
+        "other_s": 0.01725891722162487
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        3.4912406999937957
+      ],
+      "simulator_mean_ms_per_vector_step": 2.274546572104011,
+      "simulator_ms_per_transition": 2.274546572104011,
+      "episode_comfort_returns": [
+        -75.6541125922704
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 0.7226594090461731,
+      "final_actor_loss": -19.960689544677734,
+      "final_alpha": 0.1902807652950287,
+      "energyplus_completion": [
+        "EnergyPlus Completed Successfully-- 0 Warning; 0 Severe Errors; Elapsed Time=00hr 00min 11.02sec"
+      ]
+    },
+    {
+      "zones": 100,
+      "engine": "full_jax",
+      "elapsed_s": 89.45827092199761,
+      "transitions_per_s": 22.53564683535896,
+      "timing_s": {
+        "environment_setup_s": 1.133211335996748,
+        "learner_setup_s": 0.4548594299994875,
+        "random_exploration_s": 0.0017541659763082862,
+        "action_transfer_s": 0.3674329799832776,
+        "replay_write_and_transfer_s": 0.22583827199559892,
+        "replay_sample_and_transfer_s": 0.27958551102346973,
+        "first_update_s": 1.3675937000007252,
+        "learner_update_s": 4.611186951013224,
+        "first_policy_s": 0.23430338299658615,
+        "policy_s": 1.361976944062917,
+        "reset_s": 0.0019383780017960817,
+        "simulator_first_step_s": 0.022959711001021788,
+        "simulator_warm_s": 79.37070700202457,
+        "shutdown_s": 4.577996151056141e-06,
+        "other_s": 0.02491857992572477
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        0.0019383780017960817
+      ],
+      "simulator_mean_ms_per_vector_step": 39.38992903326281,
+      "simulator_ms_per_transition": 39.38992903326282,
+      "episode_comfort_returns": [
+        -2706.7215687386924
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 14.074155807495117,
+      "final_actor_loss": -50.956947326660156,
+      "final_alpha": 0.1902923434972763,
+      "thermal_nodes": 18101,
+      "mass_nodes": 8000,
+      "thermal_prepare_s": 1.035093065998808,
+      "method": "cg"
+    },
+    {
+      "zones": 100,
+      "engine": "grouped_jax",
+      "elapsed_s": 14.835173081002722,
+      "transitions_per_s": 135.89325779970858,
+      "timing_s": {
+        "environment_setup_s": 0.6981616199991549,
+        "learner_setup_s": 0.016509781999047846,
+        "random_exploration_s": 0.002289138028572779,
+        "action_transfer_s": 0.3183673320527305,
+        "replay_write_and_transfer_s": 0.21443578408070607,
+        "replay_sample_and_transfer_s": 0.16704803403263213,
+        "first_update_s": 0.023780572002578992,
+        "learner_update_s": 3.6154591960366815,
+        "first_policy_s": 0.30481082599726506,
+        "policy_s": 1.1227652229426894,
+        "reset_s": 0.0023473479959648103,
+        "simulator_first_step_s": 0.005733578000217676,
+        "simulator_warm_s": 8.31738596688956,
+        "shutdown_s": 4.798996087629348e-06,
+        "other_s": 0.026073881948832422
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        0.0023473479959648103
+      ],
+      "simulator_mean_ms_per_vector_step": 4.127734971161072,
+      "simulator_ms_per_transition": 4.127734971161072,
+      "episode_comfort_returns": [
+        -2653.7135453656665
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 13.476940155029297,
+      "final_actor_loss": -50.90185546875,
+      "final_alpha": 0.190292090177536,
+      "thermal_nodes": 621,
+      "mass_nodes": 100,
+      "thermal_prepare_s": 0.5679573230008828,
+      "method": "dense"
+    },
+    {
+      "zones": 100,
+      "engine": "energyplus",
+      "elapsed_s": 37.93708212000638,
+      "transitions_per_s": 53.14061829064204,
+      "timing_s": {
+        "environment_setup_s": 3.3376836350071244,
+        "learner_setup_s": 0.017654177005169913,
+        "random_exploration_s": 0.0026452889942447655,
+        "action_transfer_s": 0.028398247763107065,
+        "replay_write_and_transfer_s": 0.2119638949225191,
+        "replay_sample_and_transfer_s": 0.1521961510006804,
+        "first_update_s": 0.024517363002814818,
+        "learner_update_s": 3.2601395450765267,
+        "observation_transfer_s": 0.6649883320860681,
+        "first_policy_s": 0.32343255600426346,
+        "policy_s": 0.97629583892558,
+        "reset_s": 11.077364583004965,
+        "simulator_first_step_s": 0.010662740001862403,
+        "simulator_warm_s": 17.070857511171198,
+        "shutdown_s": 0.7498133449989837,
+        "other_s": 0.028468911041272804
+      },
+      "transitions": 2016,
+      "vector_steps": 2016,
+      "gradient_updates": 168,
+      "started_episodes": 1,
+      "completed_episodes": 1,
+      "reset_per_wave_s": [
+        11.077364583004965
+      ],
+      "simulator_mean_ms_per_vector_step": 8.47188958370779,
+      "simulator_ms_per_transition": 8.47188958370779,
+      "episode_comfort_returns": [
+        -71.80483770172236
+      ],
+      "first_policy_cross_building_action_std": 0.0,
+      "final_critic_loss": 4.719696998596191,
+      "final_actor_loss": -52.27326965332031,
+      "final_alpha": 0.19036197662353516,
+      "energyplus_completion": [
+        "EnergyPlus Completed Successfully-- 0 Warning; 0 Severe Errors; Elapsed Time=00hr 00min 33.65sec"
+      ]
+    }
+  ]
+}

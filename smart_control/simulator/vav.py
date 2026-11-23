@@ -218,9 +218,13 @@ class Vav(smart_device.SmartDevice):
     zone_supply_temp = self.compute_zone_supply_temp(
         supply_air_temp, input_water_temp
     )
-    air_flow_rate = self._damper_setting * self._max_air_flow_rate
+    return self._heat_from_supply_temp(zone_temp, zone_supply_temp)
+
+  def _heat_from_supply_temp(
+      self, zone_temp: float, zone_supply_temp: float
+  ) -> float:
     return (
-        air_flow_rate
+        (self._damper_setting * self._max_air_flow_rate)
         * constants.AIR_HEAT_CAPACITY
         * (zone_supply_temp - zone_temp)
     )

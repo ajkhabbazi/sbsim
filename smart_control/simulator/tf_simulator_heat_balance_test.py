@@ -15,16 +15,18 @@ Taking the owner CV's own conductivity across its own full width instead makes
 the two CVs sharing a face disagree about the heat crossing it, and using
 h_ext on its own drops the conduction resistance of the outer half cell. The
 first group of tests pins down both conductances, and the second group checks
-the analytical solution of the implicit Euler system against the finite
+whole-field solutions of the implicit Euler system against the finite
 difference relaxation the simulator runs by default.
 """
 
 from unittest import mock
 
 from absl.testing import absltest
+from absl.testing import parameterized
 import numpy as np
 import pandas as pd
 
+from smart_control.simulator import numpy_scipy_simulator
 from smart_control.simulator import simulator as simulator_py
 from smart_control.simulator import simulator_flexible_floor_plan as flexible_py
 from smart_control.simulator import simulator_flexible_floor_plan_test
@@ -348,24 +350,35 @@ class FaceConductanceTest(absltest.TestCase):
     )
 
 
-class AnalyticalSolutionTest(absltest.TestCase):
-  """Tests the direct solve of the implicit Euler energy balance."""
+class WholeFieldSolutionTest(parameterized.TestCase):
+  """Tests the direct and CG solutions of the implicit Euler balance."""
 
   AMBIENT_TEMPERATURE = 285.0
   CONVECTION_COEFFICIENT = 12.0
   TIME_STEP_SEC = 300.0
+  FEATURE_TIME_STEP_SEC = 30.0
+  FEATURE_CONVERGENCE_THRESHOLD = 1e-4
+  FEATURE_ITERATION_LIMIT = 2000
   # Long enough that a couple of hundred steps reach the steady state.
   LONG_STEP_SEC = 86400.0
 
   def _create_simulator(
       self,
-      use_analytical_solution,
+      backend,
       iteration_limit=200,
       time_step_sec=TIME_STEP_SEC,
   ):
-    """Returns a TFSimulator over the small test building."""
+    """Returns the requested solver over the small test building."""
     fixtures = tf_simulator_test.TFSimulatorTest()
-    return tf_simulator_py.TFSimulator(
+    simulator_class = (
+        numpy_scipy_simulator.NumpyScipySimulator
+        if backend == 'numpy_scipy'
+        else tf_simulator_py.TFSimulator
+    )
+    kwargs = {}
+    if backend != 'numpy_scipy':
+      kwargs['solver_method'] = backend
+    return simulator_class(
         fixtures._create_test_building(),  # pylint: disable=protected-access
         fixtures._create_small_hvac(),  # pylint: disable=protected-access
         mock.create_autospec(weather_controller_py.WeatherController),
@@ -373,9 +386,61 @@ class AnalyticalSolutionTest(absltest.TestCase):
         1e-6,
         iteration_limit,
         iteration_limit,
-        pd.Timestamp("2012-12-21"),
-        use_analytical_solution=use_analytical_solution,
+        pd.Timestamp('2012-12-21'),
+        **kwargs,
     )
+
+  def _create_feature_simulator(
+      self,
+      backend: str,
+      include_interior_mass: bool,
+      include_radiative_heat_transfer: bool,
+  ):
+    """Returns a controlled solver-comparison case with real thermal forcing."""
+    fixture = (
+        simulator_flexible_floor_plan_test.FlexibleFloorplanSimulatorTest()
+    )
+    _, building = fixture._create_simulator_and_building(  # pylint: disable=protected-access
+        initial_temp=292.0,
+        include_interior_mass=include_interior_mass,
+        include_radiative_heat_transfer=include_radiative_heat_transfer,
+        convergence_threshold=self.FEATURE_CONVERGENCE_THRESHOLD,
+        iteration_limit=self.FEATURE_ITERATION_LIMIT,
+    )
+    building.conductivity[:] = 0.5
+
+    simulator_class = (
+        numpy_scipy_simulator.NumpyScipySimulator
+        if backend == 'numpy_scipy'
+        else tf_simulator_py.TFSimulator
+    )
+    kwargs = {}
+    if backend != 'numpy_scipy':
+      kwargs['solver_method'] = backend
+    simulator = simulator_class(
+        building,
+        fixture._create_small_hvac(),  # pylint: disable=protected-access
+        mock.create_autospec(weather_controller_py.WeatherController),
+        self.FEATURE_TIME_STEP_SEC,
+        self.FEATURE_CONVERGENCE_THRESHOLD,
+        self.FEATURE_ITERATION_LIMIT,
+        self.FEATURE_ITERATION_LIMIT,
+        pd.Timestamp('2012-12-21'),
+        relative_convergence_threshold=None,
+        **kwargs,
+    )
+    source_coordinates = np.argwhere(simulator.building.diffusers > 0.0)
+    source = tuple(source_coordinates[len(source_coordinates) // 2])
+    simulator.building.input_q[source] = 50.0
+    if include_interior_mass:
+      simulator.building.interior_mass_temp[
+          simulator.building.interior_mass_mask
+      ] = np.linspace(
+          286.0,
+          298.0,
+          int(np.sum(simulator.building.interior_mass_mask)),
+      )
+    return simulator
 
   def _ambient_conductances(self, simulator):
     """Returns the four ambient conductance tensors as numpy arrays."""
@@ -451,9 +516,9 @@ class AnalyticalSolutionTest(absltest.TestCase):
     )
     return residual, scale
 
-  def test_analytical_solution_closes_the_energy_balance(self):
-    """The direct solve leaves no imbalance on the CVs it solves for."""
-    simulator = self._create_simulator(use_analytical_solution=True)
+  def test_cg_solution_closes_the_energy_balance(self):
+    """The converged CG solve leaves negligible CV imbalance."""
+    simulator = self._create_simulator('cg')
     previous_temperatures = simulator.building.temp.copy().astype(np.float64)
 
     temperatures, _ = simulator.update_temperature_estimates(
@@ -467,15 +532,15 @@ class AnalyticalSolutionTest(absltest.TestCase):
     )
     solved = ~simulator._t_exerior_temps_mask.numpy()  # pylint: disable=protected-access
     # Reading the imbalance as the temperature error it corresponds to.
-    self.assertLess(np.max(np.abs(residual[solved] / scale[solved])), 1e-3)
+    self.assertLess(np.max(np.abs(residual[solved] / scale[solved])), 5e-5)
 
-  def test_analytical_solution_is_a_fixed_point_of_the_relaxation(self):
-    """One relaxation sweep over the direct solve must not move it."""
-    analytical = self._create_simulator(use_analytical_solution=True)
-    relaxation = self._create_simulator(use_analytical_solution=False)
+  def test_cg_solution_is_a_fixed_point_of_the_relaxation(self):
+    """One relaxation sweep over the CG solve must not move it."""
+    cg = self._create_simulator('cg')
+    relaxation = self._create_simulator('fdm')
 
-    temperatures, _ = analytical.update_temperature_estimates(
-        analytical.building.temp.copy(),
+    temperatures, _ = cg.update_temperature_estimates(
+        cg.building.temp.copy(),
         ambient_temperature=self.AMBIENT_TEMPERATURE,
         convection_coefficient=self.CONVECTION_COEFFICIENT,
     )
@@ -485,14 +550,19 @@ class AnalyticalSolutionTest(absltest.TestCase):
         convection_coefficient=self.CONVECTION_COEFFICIENT,
     )
 
-    self.assertLess(max_delta, 1e-2)
+    self.assertLess(max_delta, 5e-5)
 
-  def test_analytical_solution_matches_the_converged_relaxation(self):
-    """The relaxation converges to the field the direct solve returns."""
-    analytical = self._create_simulator(use_analytical_solution=True)
-    relaxation = self._create_simulator(use_analytical_solution=False)
+  def test_all_solvers_match_the_converged_relaxation(self):
+    """FDM, TF-CG and NumPy/SciPy converge to the same field."""
+    direct = self._create_simulator('numpy_scipy')
+    cg = self._create_simulator('cg')
+    relaxation = self._create_simulator('fdm')
 
-    analytical_converged = analytical.finite_differences_timestep(
+    direct_converged = direct.finite_differences_timestep(
+        ambient_temperature=self.AMBIENT_TEMPERATURE,
+        convection_coefficient=self.CONVECTION_COEFFICIENT,
+    )
+    cg_converged = cg.finite_differences_timestep(
         ambient_temperature=self.AMBIENT_TEMPERATURE,
         convection_coefficient=self.CONVECTION_COEFFICIENT,
     )
@@ -501,42 +571,104 @@ class AnalyticalSolutionTest(absltest.TestCase):
         convection_coefficient=self.CONVECTION_COEFFICIENT,
     )
 
-    self.assertTrue(analytical_converged)
+    self.assertTrue(direct_converged)
+    self.assertTrue(cg_converged)
     self.assertTrue(relaxation_converged)
     np.testing.assert_allclose(
-        analytical.building.temp, relaxation.building.temp, atol=1e-2
+        direct.building.temp,
+        cg.building.temp,
+        rtol=0.0,
+        atol=5e-3,
     )
-
-  def test_analytical_solution_does_not_depend_on_the_iteration_limit(self):
-    """A direct solve is done in one pass, unlike the relaxation."""
-    generous = self._create_simulator(
-        use_analytical_solution=True, iteration_limit=200
-    )
-    single_pass = self._create_simulator(
-        use_analytical_solution=True, iteration_limit=1
-    )
-
-    generous.finite_differences_timestep(
-        ambient_temperature=self.AMBIENT_TEMPERATURE,
-        convection_coefficient=self.CONVECTION_COEFFICIENT,
-    )
-    single_pass.finite_differences_timestep(
-        ambient_temperature=self.AMBIENT_TEMPERATURE,
-        convection_coefficient=self.CONVECTION_COEFFICIENT,
-    )
-
     np.testing.assert_allclose(
-        generous.building.temp, single_pass.building.temp, atol=1e-4
+        direct.building.temp,
+        relaxation.building.temp,
+        rtol=0.0,
+        atol=5e-3,
     )
+
+  @parameterized.parameters('cg', 'numpy_scipy')
+  def test_complete_linear_solve_needs_one_outer_iteration(self, backend):
+    """Without nonlinear features, whole-field solvers finish in one pass."""
+    simulator = self._create_simulator(backend, iteration_limit=1)
+    self.assertTrue(
+        simulator.finite_differences_timestep(
+            ambient_temperature=self.AMBIENT_TEMPERATURE,
+            convection_coefficient=self.CONVECTION_COEFFICIENT,
+        )
+    )
+
+  @parameterized.named_parameters(
+      ('base', False, False, 5e-4),
+      ('interior_mass', True, False, 1e-3),
+      ('radiation', False, True, 5e-4),
+      ('interior_mass_and_radiation', True, True, 1e-3),
+  )
+  def test_all_solvers_converge_with_optional_physics(
+      self,
+      include_interior_mass,
+      include_radiation,
+      tolerance,
+  ):
+    """All three backends converge in every optional-physics case."""
+    direct = self._create_feature_simulator(
+        'numpy_scipy', include_interior_mass, include_radiation
+    )
+    cg = self._create_feature_simulator(
+        'cg', include_interior_mass, include_radiation
+    )
+    iterative = self._create_feature_simulator(
+        'fdm', include_interior_mass, include_radiation
+    )
+
+    direct_converged = direct.finite_differences_timestep(
+        ambient_temperature=305.0,
+        convection_coefficient=self.CONVECTION_COEFFICIENT,
+    )
+    cg_converged = cg.finite_differences_timestep(
+        ambient_temperature=305.0,
+        convection_coefficient=self.CONVECTION_COEFFICIENT,
+    )
+    iterative_converged = iterative.finite_differences_timestep(
+        ambient_temperature=305.0,
+        convection_coefficient=self.CONVECTION_COEFFICIENT,
+    )
+    self.assertTrue(direct_converged)
+    self.assertTrue(cg_converged)
+    self.assertTrue(iterative_converged)
+    np.testing.assert_allclose(
+        cg.building.temp,
+        direct.building.temp,
+        rtol=0.0,
+        atol=tolerance,
+    )
+    np.testing.assert_allclose(
+        iterative.building.temp,
+        direct.building.temp,
+        rtol=0.0,
+        atol=tolerance,
+    )
+
+    if include_interior_mass:
+      np.testing.assert_allclose(
+          cg.building.interior_mass_temp,
+          direct.building.interior_mass_temp,
+          rtol=0.0,
+          atol=5e-5,
+      )
+      np.testing.assert_allclose(
+          iterative.building.interior_mass_temp,
+          direct.building.interior_mass_temp,
+          rtol=0.0,
+          atol=5e-5,
+      )
 
   def test_steady_state_relaxes_to_the_ambient_temperature(self):
     """Without a source, every CV ends up at the ambient temperature."""
     # The exterior wall of this building is insulating, k = 0.05 W/(m K), so
     # its time constant runs to days. Implicit Euler is unconditionally
     # stable, so long steps get to the steady state at no cost in accuracy.
-    simulator = self._create_simulator(
-        use_analytical_solution=True, time_step_sec=self.LONG_STEP_SEC
-    )
+    simulator = self._create_simulator('cg', time_step_sec=self.LONG_STEP_SEC)
     self.assertEqual(np.max(np.abs(simulator.building.input_q)), 0.0)
 
     for _ in range(200):
@@ -556,9 +688,7 @@ class AnalyticalSolutionTest(absltest.TestCase):
 
   def test_steady_state_loses_exactly_what_is_put_in(self):
     """At steady state the ambient carries away the whole source."""
-    simulator = self._create_simulator(
-        use_analytical_solution=True, time_step_sec=self.LONG_STEP_SEC
-    )
+    simulator = self._create_simulator('cg', time_step_sec=self.LONG_STEP_SEC)
     interior = ~simulator._t_exerior_temps_mask.numpy()  # pylint: disable=protected-access
     interior_cvs = np.argwhere(interior)
     source_cv = tuple(interior_cvs[len(interior_cvs) // 2])
@@ -625,7 +755,7 @@ class NumpyAgreementTest(absltest.TestCase):
         0.1,
         20,
         15,
-        pd.Timestamp("2012-12-21"),
+        pd.Timestamp('2012-12-21'),
     )
     tensor_simulator = tf_simulator_py.TFSimulator(
         fixture._create_test_building(), *arguments  # pylint: disable=protected-access
@@ -655,11 +785,11 @@ class NumpyAgreementTest(absltest.TestCase):
     # conductance by. The narrowing to the shared area is already folded into
     # the conductance itself.
     faces = {
-        (0, -1): ("left", tensor_simulator._t_face_conductance_left, widths_v),  # pylint: disable=protected-access
-        (0, 1): ("right", tensor_simulator._t_face_conductance_right, widths_v),  # pylint: disable=protected-access
-        (-1, 0): ("top", tensor_simulator._t_face_conductance_top, widths_u),  # pylint: disable=protected-access
+        (0, -1): ('left', tensor_simulator._t_face_conductance_left, widths_v),  # pylint: disable=protected-access
+        (0, 1): ('right', tensor_simulator._t_face_conductance_right, widths_v),  # pylint: disable=protected-access
+        (-1, 0): ('top', tensor_simulator._t_face_conductance_top, widths_u),  # pylint: disable=protected-access
         (1, 0): (
-            "bottom",
+            'bottom',
             tensor_simulator._t_face_conductance_bottom,  # pylint: disable=protected-access
             widths_u,
         ),
@@ -683,7 +813,7 @@ class NumpyAgreementTest(absltest.TestCase):
               conductance[i, j] * width[i, j] * floor_height,
               expected,
               delta=1e-4 * max(expected, 1.0),
-              msg=f"{name} face of CV {(i, j)}",
+              msg=f'{name} face of CV {(i, j)}',
           )
           compared += 1
 
@@ -746,7 +876,7 @@ class RadiationLinearizationTest(absltest.TestCase):
         0.0001,
         iteration_limit,
         iteration_limit,
-        pd.Timestamp("2012-12-21"),
+        pd.Timestamp('2012-12-21'),
     )
 
   def _relax(self, simulator, sweeps):
@@ -824,5 +954,5 @@ class RadiationLinearizationTest(absltest.TestCase):
     np.testing.assert_allclose(converged[0], converged[1], atol=5e-2)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
   absltest.main()

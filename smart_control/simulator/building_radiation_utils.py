@@ -4,8 +4,9 @@ For computing the physical and thermal characteristics of buildings.
 """
 
 from collections import deque
+import dataclasses
 import math
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, NamedTuple, Sequence
 
 import numpy as np
 
@@ -16,6 +17,146 @@ TEMPORARY_MARKED_VALUE = -33
 TEMPORARY_BLOCKED_VALUE = -34
 AIR_IN_LINE_OF_SIGHT = 9  # Air nodes along line of sight between wall nodes
 FOUR_CONNECTED_DIRECTIONS = ((-1, 0), (1, 0), (0, -1), (0, 1))
+# Compass bearings of FOUR_CONNECTED_DIRECTIONS.
+EXTERIOR_FACE_AZIMUTHS = (0.0, 180.0, 270.0, 90.0)
+
+
+class ExteriorRadiationForcing(NamedTuple):
+  """Solar power in W, emission in W/K⁴, and radiant temperature in K.
+
+  Fields are NumPy or backend-native arrays. The radiant temperature is scalar.
+  """
+
+  shortwave_air_gain: Any
+  emission: Any
+  mass_gain: Any
+  radiant_temperature: Any
+
+  def linearized_air_terms(self, temperature, reference_temperature=0.0):
+    """Returns diagonal conductance and driving power for the chosen reference.
+
+    Factoring T_rad⁴ - T_surface⁴ gives a positive secant conductance for
+    positive temperatures. Freeze that conductance for the current linear
+    solve and keep the unknown surface temperature implicit. Solvers for
+    temperature change use the previous temperature as their reference.
+    """
+    radiant = self.radiant_temperature
+    conductance = (
+        self.emission * (radiant + temperature) * (radiant**2 + temperature**2)
+    )
+    driving = self.shortwave_air_gain + conductance * (
+        radiant - reference_temperature
+    )
+    return conductance, driving
+
+
+@dataclasses.dataclass(frozen=True)
+class ExteriorRadiationGeometry:
+  """Static exterior-face geometry and shortwave routing for a floor plan."""
+
+  face_areas: np.ndarray
+  azimuths: tuple[float, ...]
+  absorptivity: np.ndarray
+  emission: np.ndarray
+  transmittance: float
+  window_targets: tuple[tuple[np.ndarray, np.ndarray], ...]
+  mass_mask: np.ndarray
+
+  def forcing(
+      self,
+      weather: solar_radiation.ExteriorRadiationData,
+      *,
+      poa_irradiance: tuple[float, ...] | None = None,
+      window_air_gain: Callable[[np.ndarray], np.ndarray] | None = None,
+  ) -> ExteriorRadiationForcing:
+    """Converts incident radiation to power once per weather sample."""
+    ambient = weather.ambient_temp_k
+    ground = ambient if weather.ground_temp_k is None else weather.ground_temp_k
+    # The model has vertical facades. F_ground = F_sky = 1/2, with the
+    # sky-facing fraction split between the sky dome and surrounding air.
+    sky_weight = 0.5 * math.sqrt(0.5)
+    surroundings_t4 = (
+        0.5 * ground**4
+        + sky_weight * weather.sky_temp_k**4
+        + (0.5 - sky_weight) * ambient**4
+    )
+
+    irradiance = weather.irradiance
+    absorbed = np.zeros_like(self.emission)
+    transmitted = np.zeros_like(self.emission)
+    if irradiance.ghi > 0.0 or irradiance.dni > 0.0 or irradiance.dhi > 0.0:
+      if poa_irradiance is None:
+        poa_irradiance = tuple(
+            solar_radiation.calculate_poa_irradiance(irradiance, 90.0, azimuth)
+            for azimuth in self.azimuths
+        )
+      incident = sum(
+          area * flux
+          for area, flux in zip(self.face_areas, poa_irradiance, strict=True)
+      )
+      absorbed = self.absorptivity * incident
+      if window_air_gain is None:
+        for window_indices, air_indices in self.window_targets:
+          watts = self.transmittance * incident.flat[window_indices].sum()
+          transmitted.flat[air_indices] += watts / air_indices.size
+      else:
+        transmitted = window_air_gain(incident)
+
+    return ExteriorRadiationForcing(
+        shortwave_air_gain=absorbed
+        + np.where(self.mass_mask, 0.0, transmitted),
+        emission=self.emission,
+        mass_gain=np.where(self.mass_mask, transmitted, 0.0),
+        radiant_temperature=surroundings_t4**0.25,
+    )
+
+
+def exterior_window_targets(
+    floor_plan: np.ndarray, active_air: np.ndarray, exposed: np.ndarray
+) -> tuple[tuple[np.ndarray, np.ndarray], ...]:
+  """Maps each exposed glazing group to the union of adjacent air regions."""
+  window_value = constants.FENESTRATION_VALUE_IN_FILE_INPUT
+  if not np.any((floor_plan == window_value) & exposed):
+    return ()
+
+  # Label connected air independently of HVAC zone boundaries. Only recipients
+  # whose temperatures are solved can take a share of the transmitted power.
+  air_labels = np.zeros(floor_plan.shape, dtype=int)
+  air_indices_by_label = {}
+  for label, group in enumerate(
+      _find_connected_groups(active_air, True).values(), 1
+  ):
+    rows, cols = zip(*group['indices'])
+    air_labels[rows, cols] = label
+    air_indices_by_label[label] = np.ravel_multi_index(
+        (rows, cols), floor_plan.shape
+    )
+
+  targets = []
+  rows_count, cols_count = floor_plan.shape
+  for group in _find_connected_groups(floor_plan, window_value).values():
+    window = group['indices']
+    exposed_window = [(r, c) for r, c in window if exposed[r, c]]
+    if not exposed_window:
+      continue
+    adjacent_air = set()
+    for r, c in window:
+      for dr, dc in FOUR_CONNECTED_DIRECTIONS:
+        nr, nc = r + dr, c + dc
+        if 0 <= nr < rows_count and 0 <= nc < cols_count:
+          if air_labels[nr, nc]:
+            adjacent_air.add(air_labels[nr, nc])
+    if not adjacent_air:
+      raise ValueError(
+          f'Exterior glazing at {exposed_window[0]} transmits solar power but '
+          'has no adjacent indoor air region.'
+      )
+    targets.append((
+        np.ravel_multi_index(tuple(zip(*exposed_window)), floor_plan.shape),
+        np.concatenate([air_indices_by_label[i] for i in sorted(adjacent_air)]),
+    ))
+  return tuple(targets)
+
 
 # pylint: disable=invalid-name
 
@@ -705,8 +846,7 @@ def fix_view_factors(F: np.ndarray, A: np.ndarray = None) -> np.ndarray:
   MAX_ITERATIONS = 400
 
   # Convert inputs to numpy arrays
-  if A is None:
-    A = np.ones(F.shape[0])
+  A = np.ones(F.shape[0]) if A is None else np.asarray(A)
 
   F = np.array(F, dtype=np.float64)  # copy so the input is not mutated
   F = F.T  # since EP calculation is based on F[j,i]
@@ -755,24 +895,19 @@ def fix_view_factors(F: np.ndarray, A: np.ndarray = None) -> np.ndarray:
       )
 
   # Set up AF matrix (AREA * DIRECT VIEW FACTOR) MATRIX
-  AF = np.zeros((N, N))
-  for i in range(N):
-    for j in range(N):
-      AF[j, i] = FixedAF[j, i] * A[i]
+  AF = FixedAF * A
 
   # Enforce reciprocity by averaging AiFij and AjFji
   FixedAF = 0.5 * (AF + AF.T)
 
   FixedF = np.zeros((N, N))
+  has_area = A != 0
   results['num_iterations'] = 0
   results['row_sum'] = 0.0
 
   # Check for physically unreasonable enclosures (N <= 3)
   if N <= 3:
-    for i in range(N):
-      for j in range(N):
-        if A[i] != 0:
-          FixedF[j, i] = FixedAF[j, i] / A[i]
+    np.divide(FixedAF, A, out=FixedF, where=has_area)
 
     results['row_sum'] = np.sum(FixedF)
 
@@ -819,13 +954,10 @@ def fix_view_factors(F: np.ndarray, A: np.ndarray = None) -> np.ndarray:
     FixedAF = 0.5 * (FixedAF + FixedAF.T)
 
     # Form FixedF matrix
-    for i in range(N):
-      for j in range(N):
-        if A[i] != 0:
-          FixedF[j, i] = FixedAF[j, i] / A[i]
-          if abs(FixedF[j, i]) < 1.0e-10:
-            FixedF[j, i] = 0.0
-            FixedAF[j, i] = 0.0
+    np.divide(FixedAF, A, out=FixedF, where=has_area)
+    small = (np.abs(FixedF) < 1.0e-10) & has_area
+    FixedF[small] = 0.0
+    FixedAF[small] = 0.0
 
     ConvrgNew = np.max(np.abs(np.sum(FixedF, axis=0) - 1.0))
 
@@ -844,10 +976,7 @@ def fix_view_factors(F: np.ndarray, A: np.ndarray = None) -> np.ndarray:
       FixedAF = 0.5 * (FixedAF + FixedAF.T)
 
       # Form FixedF matrix
-      for i in range(N):
-        for j in range(N):
-          if A[i] != 0:
-            FixedF[j, i] = FixedAF[j, i] / A[i]
+      np.divide(FixedAF, A, out=FixedF, where=has_area)
 
       sum_FixedF = np.sum(FixedF)
       results['final_check_value'] = results['fixed_check_value'] = abs(

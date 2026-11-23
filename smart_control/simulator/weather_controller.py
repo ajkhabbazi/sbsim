@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from smart_control.proto import smart_control_building_pb2
+from smart_control.simulator import solar_radiation
 from smart_control.utils import conversion_utils as utils
 
 TemperatureBounds = Tuple[float, float]
@@ -38,6 +39,25 @@ class BaseWeatherController(metaclass=abc.ABCMeta):
   def get_current_temp(self, timestamp: pd.Timestamp) -> float:
     """Gets outside temp at specified timestamp."""
 
+  def get_exterior_radiation(
+      self, timestamp: pd.Timestamp, ambient_temperature: float
+  ) -> solar_radiation.ExteriorRadiationData:
+    """Returns solar and sky conditions for the supplied ambient temperature."""
+    return self._get_solar_radiation_model().get_exterior_radiation(
+        timestamp, ambient_temperature=ambient_temperature
+    )
+
+  def _get_solar_radiation_model(
+      self, default_irradiance_method: str = 'clearsky'
+  ) -> solar_radiation.SolarRadiation:
+    model = getattr(self, '_solar_radiation_model', None)
+    if model is None:
+      model = solar_radiation.SolarRadiation(
+          irradiance_method=default_irradiance_method
+      )
+      self._solar_radiation_model = model
+    return model
+
   # SHOULD THIS BASE CLASS IMPLEMENT get_air_convection_coefficient AS WELL?
 
 
@@ -60,7 +80,9 @@ class WeatherController(BaseWeatherController):
       default_high_temp: float,
       special_days: Optional[Mapping[int, TemperatureBounds]] = None,
       convection_coefficient: float = 12.0,
+      solar_radiation_model: solar_radiation.SolarRadiation | None = None,
   ):
+    self._solar_radiation_model = solar_radiation_model
     self.default_low_temp = default_low_temp
     self.default_high_temp = default_high_temp
     self.special_days = special_days if special_days else {}
@@ -113,9 +135,8 @@ class WeatherController(BaseWeatherController):
     else:
       low = tomorrow_low
 
-    seconds_in_day = (
-        timestamp - pd.Timestamp(timestamp.date())
-    ).total_seconds()
+    local_time = timestamp.tz_localize(None)
+    seconds_in_day = (local_time - local_time.normalize()).total_seconds()
     rad = self.seconds_to_rads(seconds_in_day)
     temp = 0.5 * (math.sin(rad) + 1) * (high - low) + low
     return temp
@@ -176,11 +197,13 @@ class ReplayWeatherController(BaseWeatherController):
       local_weather_path: str = WEATHER_CSV_FILEPATH,
       convection_coefficient: float = 12.0,
       humidity_column: str = 'Humidity',
+      solar_radiation_model: solar_radiation.SolarRadiation | None = None,
   ):
     self.local_weather_path = local_weather_path
     self.weather_df = self.read_weather_csv(self.local_weather_path)
     self.convection_coefficient = convection_coefficient
     self.humidity_column = humidity_column
+    self._solar_radiation_model = solar_radiation_model
 
   @property
   def csv_filepath(self) -> str:
@@ -293,6 +316,36 @@ class ReplayWeatherController(BaseWeatherController):
   def get_current_humidity(self, timestamp: pd.Timestamp) -> float:
     """For a given timestamp, returns the current humidity level in percent."""
     return self._get_interpolated_value(timestamp, self.humidities)
+
+  def get_exterior_radiation(
+      self, timestamp: pd.Timestamp, ambient_temperature: float
+  ) -> solar_radiation.ExteriorRadiationData:
+    """Uses measured dew point and cloud cover when replay provides them."""
+    # Replay inputs interpret naive timestamps as UTC, including for the sun.
+    if timestamp.tzinfo is None:
+      timestamp = timestamp.tz_localize('UTC')
+    dew_point = None
+    if 'DewPointC' in self.weather_df:
+      values = self.weather_df['DewPointC']
+      value = self._get_interpolated_value(
+          timestamp, values.where(values > -273.15)
+      )
+      if np.isfinite(value):
+        dew_point = value + 273.15
+    cloud_cover = None
+    if 'SkyCoverage' in self.weather_df:
+      values = self.weather_df['SkyCoverage']
+      value = self._get_interpolated_value(
+          timestamp, values.where(values.between(0.0, 100.0))
+      )
+      if np.isfinite(value):
+        cloud_cover = value
+    return self._get_solar_radiation_model('linear').get_exterior_radiation(
+        timestamp,
+        ambient_temperature=ambient_temperature,
+        dew_point_temperature=dew_point,
+        observed_cloud_cover=cloud_cover,
+    )
 
   # pylint: disable=unused-argument
   def get_air_convection_coefficient(self, timestamp: pd.Timestamp) -> float:

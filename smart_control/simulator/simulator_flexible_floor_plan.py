@@ -181,10 +181,10 @@ class SimulatorFlexibleGeometries(simulator.Simulator):
 
     # Increment the timestamp.
     self._current_timestamp += pd.Timedelta(self._time_step_sec, unit="s")
-    self._log_and_plotter.log(self.building.temp)
-
-    if self.current_timestamp == self._start_timestamp + pd.Timedelta(days=4):
-      self.get_video(path=constants.SIM_VIDEOS_DIRPATH + video_filename)
+    if video_filename is not None:
+      self._log_and_plotter.log(self.building.temp)
+      if self.current_timestamp == self._start_timestamp + pd.Timedelta(days=4):
+        self.get_video(path=constants.SIM_VIDEOS_DIRPATH + video_filename)
 
   def _get_zone_reward_info(
       self,

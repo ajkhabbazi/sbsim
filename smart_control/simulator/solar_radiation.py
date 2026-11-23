@@ -5,15 +5,21 @@ For computing irradiance components, solar position, and sky temperature.
 
 import dataclasses
 import math
-from typing import Final, Mapping, Sequence
+from typing import Final, Mapping, Protocol, Sequence
 
 import numpy as np
 import pandas as pd
 from pvlib import irradiance as pvlib_irradiance
 from pvlib import location as pvlib_location
 
-from smart_control.simulator import weather_controller as wc_module
 from smart_control.utils import conversion_utils as utils
+
+
+class _TemperatureProvider(Protocol):
+
+  def get_current_temp(self, timestamp: pd.Timestamp) -> float:
+    ...
+
 
 # ---------------------------------------------------------------------------
 # Valid irradiance method names
@@ -126,12 +132,15 @@ class ExteriorRadiationData:
       for exterior longwave radiative heat transfer (LWR).
     irradiance: Shortwave irradiance components (GHI, DNI, DHI) and solar
       position.  Used for solar gain through fenestrations.
+    ground_temp_k: Ground temperature in Kelvin. Defaults to the ambient
+      temperature when omitted.
   """
 
   timestamp: pd.Timestamp
   ambient_temp_k: float
   sky_temp_k: float
   irradiance: IrradianceComponents
+  ground_temp_k: float | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -162,7 +171,7 @@ class SolarRadiation:
   def __init__(
       self,
       building_info: BuildingInfo | None = None,
-      weather_controller: wc_module.BaseWeatherController | None = None,
+      weather_controller: _TemperatureProvider | None = None,
       dewpoint_depression: float = 5.0,
       cloud_cover: float | None = None,
       cloud_cover_low: float | None = None,
@@ -276,7 +285,10 @@ class SolarRadiation:
   # ----- irradiance -------------------------------------------------------
 
   def get_current_irradiance(
-      self, timestamp: pd.Timestamp
+      self,
+      timestamp: pd.Timestamp,
+      *,
+      observed_cloud_cover: float | None = None,
   ) -> IrradianceComponents:
     """Return current irradiance (GHI, DNI, DHI) in W/m².
 
@@ -286,6 +298,8 @@ class SolarRadiation:
     Args:
       timestamp: Pandas timestamp.  If naive, will be localised to the
         building's timezone.
+      observed_cloud_cover: Cloud cover in percent for this sample. Overrides
+        configured cloud cover when the irradiance method uses it.
 
     Returns:
       :class:`IrradianceComponents` with GHI, DNI, DHI and solar position.
@@ -299,10 +313,13 @@ class SolarRadiation:
     solar_zenith = float(solar_position['apparent_zenith'].iloc[0])
     solar_azimuth = float(solar_position['azimuth'].iloc[0])
 
-    current_cloud_cover = self.get_current_cloud_cover(timestamp)
-
-    has_cloud_cover = self.cloud_cover is not None or (
-        self.cloud_cover_low is not None and self.cloud_cover_high is not None
+    current_cloud_cover = observed_cloud_cover
+    if current_cloud_cover is None:
+      current_cloud_cover = self.get_current_cloud_cover(timestamp)
+    has_cloud_cover = (
+        observed_cloud_cover is not None
+        or self.cloud_cover is not None
+        or self.cloud_cover_low is not None
     )
 
     # Clearsky model
@@ -392,7 +409,12 @@ class SolarRadiation:
   # ----- combined exterior radiation state ---------------------------------
 
   def get_exterior_radiation(
-      self, timestamp: pd.Timestamp
+      self,
+      timestamp: pd.Timestamp,
+      *,
+      ambient_temperature: float | None = None,
+      dew_point_temperature: float | None = None,
+      observed_cloud_cover: float | None = None,
   ) -> ExteriorRadiationData:
     """Return ambient temperature, sky temperature, and irradiance at once.
 
@@ -403,6 +425,12 @@ class SolarRadiation:
     Args:
       timestamp: Pandas timestamp. It is normalized to the building's timezone;
         weather-controller calls use the corresponding naive local time.
+      ambient_temperature: Known outdoor dry-bulb temperature in K. If omitted,
+        obtain it from the weather controller.
+      dew_point_temperature: Measured dew point in K. If omitted, use the
+        configured dew-point depression.
+      observed_cloud_cover: Measured cloud cover in percent for solar
+        irradiance, if available.
 
     Returns:
       :class:`ExteriorRadiationData` with `ambient_temp_k`,
@@ -411,26 +439,28 @@ class SolarRadiation:
     Raises:
       ValueError: If no weather controller was provided.
     """
-    if self.weather_controller is None:
-      raise ValueError(
-          'A weather_controller must be provided to compute exterior radiation.'
-      )
-
-    # Normalize timestamp once. WeatherController uses naive local time, while
-    # irradiance calculations require the timezone-aware timestamp.
     ts = self._ensure_timestamp_tz(timestamp)
-    weather_timestamp = ts.tz_localize(None)
-    ambient_temp_k = float(
-        self.weather_controller.get_current_temp(weather_timestamp)
-    )
-    sky_temp_k = self.get_current_sky_temperature(weather_timestamp)
-    irrad = self.get_current_irradiance(ts)
+    if ambient_temperature is None:
+      if self.weather_controller is None:
+        raise ValueError(
+            'A weather_controller must be provided to compute exterior'
+            ' radiation.'
+        )
+      ambient_temperature = float(
+          self.weather_controller.get_current_temp(ts.tz_localize(None))
+      )
+    if dew_point_temperature is None:
+      dew_point_temperature = ambient_temperature - self.dewpoint_depression
 
     return ExteriorRadiationData(
         timestamp=ts,
-        ambient_temp_k=ambient_temp_k,
-        sky_temp_k=sky_temp_k,
-        irradiance=irrad,
+        ambient_temp_k=ambient_temperature,
+        sky_temp_k=_calculate_sky_temperature(
+            ambient_temperature, dew_point_temperature
+        ),
+        irradiance=self.get_current_irradiance(
+            ts, observed_cloud_cover=observed_cloud_cover
+        ),
     )
 
 

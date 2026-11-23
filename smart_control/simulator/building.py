@@ -833,6 +833,9 @@ class FloorPlanBasedBuilding(BaseSimulatorBuilding):
       view_factor_method: str = "AreaRatio",
       include_interior_mass: bool = False,
       partition_radiative_enclosures: bool = False,
+      include_exterior_radiative_heat_transfer: bool = False,
+      fenestration_radiative_properties: RadiationProperties | None = None,
+      floor_plan_orientation: float = 0.0,
   ):
     """Initializes the New Building.
 
@@ -883,6 +886,12 @@ class FloorPlanBasedBuilding(BaseSimulatorBuilding):
         nodes attached to air CVs.
       include_interior_mass: bool to note whether to include interior mass nodes
         for air CVs.
+      include_exterior_radiative_heat_transfer: Whether to apply exterior
+        longwave and solar gains. Floor-plan value 4 identifies glazing.
+      fenestration_radiative_properties: Optical properties of glazing, when
+        exterior radiation is enabled. Defaults to clear glazing.
+      floor_plan_orientation: Clockwise bearing of the grid's up direction
+        from north, in degrees.
     """
 
     self.cv_size_cm = cv_size_cm
@@ -893,6 +902,10 @@ class FloorPlanBasedBuilding(BaseSimulatorBuilding):
     self.include_radiative_heat_transfer = include_radiative_heat_transfer
     self.partition_radiative_enclosures = partition_radiative_enclosures
     self.include_interior_mass = include_interior_mass
+    self.include_exterior_radiative_heat_transfer = (
+        include_exterior_radiative_heat_transfer
+    )
+    self.floor_plan_orientation = floor_plan_orientation
 
     # Apply default material properties if not provided
     inside_air_properties = inside_air_properties or (
@@ -945,9 +958,61 @@ class FloorPlanBasedBuilding(BaseSimulatorBuilding):
           " is True"
       )
 
+    geometry_floor_plan = self.floor_plan
+    if include_exterior_radiative_heat_transfer:
+      if not 0.0 <= floor_plan_orientation <= 360.0:
+        raise ValueError("floor_plan_orientation must be between 0 and 360.")
+      self.exterior_wall_radiative_properties = (
+          building_exterior_radiative_properties
+          or DefaultExteriorWallRadiationProperties()
+      )
+      self.fenestration_radiative_properties = (
+          fenestration_radiative_properties
+          or RadiationProperties(
+              alpha=constants.FENESTRATION_SOLAR_ABSORPTANCE,
+              epsilon=0.9,
+              tau=constants.FENESTRATION_SOLAR_TRANSMITTANCE,
+              rho=None,
+          )
+      )
+      # Glazing is solid for geometry and conduction. Keep its original label
+      # for exterior optical properties and for locating indoor recipients.
+      glazing = self.floor_plan == constants.FENESTRATION_VALUE_IN_FILE_INPUT
+      geometry_floor_plan = np.where(
+          glazing, constants.INTERIOR_WALL_VALUE_IN_FILE_INPUT, self.floor_plan
+      )
+      zone_map = np.where(
+          glazing, constants.INTERIOR_WALL_VALUE_IN_FILE_INPUT, zone_map
+      )
+      # Align the optical labels, zone indices and initial temperatures when
+      # an unpadded floor plan needs an exterior-air border.
+      wall_value = constants.INTERIOR_WALL_VALUE_IN_FILE_INPUT
+      walls = (geometry_floor_plan == wall_value) | (zone_map == wall_value)
+      padding = (
+          (int(walls[0, :].any()), int(walls[-1, :].any())),
+          (int(walls[:, 0].any()), int(walls[:, -1].any())),
+      )
+      if any(before or after for before, after in padding):
+        exterior = constants.EXTERIOR_SPACE_VALUE_IN_FILE_INPUT
+        self.floor_plan = np.pad(
+            self.floor_plan, padding, constant_values=exterior
+        )
+        geometry_floor_plan = np.pad(
+            geometry_floor_plan, padding, constant_values=exterior
+        )
+        zone_map = np.pad(zone_map, padding, constant_values=exterior)
+        if (
+            reset_temp_values is not None
+            and reset_temp_values.shape == walls.shape
+        ):
+          self._reset_temp_values = np.pad(
+              reset_temp_values, padding, constant_values=initial_temp
+          )
+      self._zone_map = zone_map
+
     (self._room_dict, exterior_walls, interior_walls, self._exterior_space) = (
         building_utils.construct_building_data_types(
-            floor_plan=self.floor_plan, zone_map=zone_map
+            floor_plan=geometry_floor_plan, zone_map=zone_map
         )
     )
 
@@ -1032,6 +1097,11 @@ class FloorPlanBasedBuilding(BaseSimulatorBuilding):
       self.indexed_floor_plan[
           self.indexed_floor_plan == constants.INTERIOR_WALL_VALUE_IN_FILE_INPUT
       ] = constants.INTERIOR_WALL_VALUE_IN_FUNCTION
+      if self.include_exterior_radiative_heat_transfer:
+        glazing = self.floor_plan == constants.FENESTRATION_VALUE_IN_FILE_INPUT
+        self.indexed_floor_plan[glazing] = (
+            constants.INTERIOR_WALL_VALUE_IN_FUNCTION
+        )
 
       self.interior_wall_mask = (
           building_radiation_utils.mark_interior_wall_adjacent_to_air(
@@ -1102,6 +1172,10 @@ class FloorPlanBasedBuilding(BaseSimulatorBuilding):
           exterior_wall_value=building_exterior_radiative_properties.tau,
           interior_and_exterior_space_value=inside_air_radiative_properties.tau,
       )
+      if self.include_exterior_radiative_heat_transfer:
+        self._epsilon[glazing] = self.fenestration_radiative_properties.epsilon
+        self._alpha[glazing] = self.fenestration_radiative_properties.alpha
+        self._tau[glazing] = self.fenestration_radiative_properties.tau
       if self.include_interior_mass:
         epsilon_temp = np.zeros_like(self._epsilon)
         epsilon_temp[self.interior_mass_mask] = self._epsilon_interior_mass[

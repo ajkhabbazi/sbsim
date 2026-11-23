@@ -278,10 +278,21 @@ pytype_strict_library(
     srcs = ["building.py"],
     deps = [
         ":base_convection_simulator",
+        ":building_radiation_utils",
         ":building_utils",
         ":constants",
         ":thermal_diffuser_utils",
         "//third_party/py/gin",
+        "//third_party/py/numpy",
+    ],
+)
+
+pytype_strict_library(
+    name = "building_radiation_utils",
+    srcs = ["building_radiation_utils.py"],
+    deps = [
+        ":constants",
+        ":solar_radiation",
         "//third_party/py/numpy",
     ],
 )
@@ -375,6 +386,8 @@ pytype_strict_library(
     srcs = ["simulator.py"],
     deps = [
         ":building",
+        ":building_radiation_utils",
+        ":constants",
         ":hvac",
         ":weather_controller",
         "//third_party/py/absl/logging",
@@ -384,6 +397,123 @@ pytype_strict_library(
         "//third_party/py/smart_buildings/smart_control/models:base_occupancy",
         "//third_party/py/smart_buildings/smart_control/proto:smart_control_reward_py_pb2",
         "//third_party/py/smart_buildings/smart_control/utils:conversion_utils",
+    ],
+)
+
+pytype_strict_library(
+    name = "numpy_scipy_simulator",
+    srcs = ["numpy_scipy_simulator.py"],
+    deps = [
+        ":simulator_flexible_floor_plan",
+        "//third_party/py/numpy",
+        "//third_party/py/scipy",
+    ],
+)
+
+pytype_strict_library(
+    name = "cached_lu_simulator",
+    srcs = ["cached_lu_simulator.py"],
+    deps = [
+        ":simulator_flexible_floor_plan",
+        "//third_party/py/numpy",
+        "//third_party/py/scipy",
+    ],
+)
+
+pytype_strict_library(
+    name = "grouped_heat_balance",
+    srcs = ["grouped_heat_balance.py"],
+    deps = [
+        ":building",
+        ":building_radiation_utils",
+        ":building_utils",
+        ":cached_lu_simulator",
+        ":constants",
+        "//third_party/py/numpy",
+        "//third_party/py/scipy",
+    ],
+)
+
+pytype_strict_library(
+    name = "grouped_jax_simulator",
+    srcs = ["grouped_jax_simulator.py"],
+    deps = [
+        ":cached_lu_simulator",
+        ":grouped_heat_balance",
+        "//third_party/py/gin",
+        "//third_party/py/jax",
+        "//third_party/py/numpy",
+        "//third_party/py/scipy",
+    ],
+)
+
+py_strict_test(
+    name = "grouped_jax_simulator_test",
+    srcs = ["grouped_jax_simulator_test.py"],
+    deps = [
+        ":air_handler",
+        ":boiler",
+        ":building",
+        ":grouped_jax_simulator",
+        ":hvac_floorplan_based",
+        ":setpoint_schedule",
+        ":weather_controller",
+        "//third_party/py/absl/testing:absltest",
+        "//third_party/py/absl/testing:parameterized",
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
+    ],
+)
+
+pytype_strict_library(
+    name = "jax_simulator",
+    srcs = ["jax_simulator.py"],
+    deps = [
+        ":building_radiation_utils",
+        ":simulator_flexible_floor_plan",
+        "//third_party/py/jax",
+        "//third_party/py/numpy",
+    ],
+)
+
+py_strict_test(
+    name = "jax_simulator_test",
+    srcs = ["jax_simulator_test.py"],
+    deps = [
+        ":jax_simulator",
+        ":numpy_scipy_simulator",
+        ":simulator_flexible_floor_plan_test",
+        ":weather_controller",
+        "//third_party/py/absl/testing:absltest",
+        "//third_party/py/absl/testing:parameterized",
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
+    ],
+)
+
+pytype_strict_library(
+    name = "jax_device_resident_simulator",
+    srcs = ["jax_device_resident_simulator.py"],
+    deps = [
+        ":constants",
+        ":jax_simulator",
+        "//third_party/py/jax",
+        "//third_party/py/numpy",
+    ],
+)
+
+py_strict_test(
+    name = "jax_device_resident_simulator_test",
+    srcs = ["jax_device_resident_simulator_test.py"],
+    deps = [
+        ":jax_device_resident_simulator",
+        ":numpy_scipy_simulator",
+        ":simulator_flexible_floor_plan_test",
+        ":weather_controller",
+        "//third_party/py/absl/testing:absltest",
+        "//third_party/py/absl/testing:parameterized",
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
     ],
 )
 
@@ -403,6 +533,69 @@ pytype_strict_library(
     ],
 )
 
+pytype_strict_library(
+    name = "tf_device_resident_simulator",
+    srcs = ["tf_device_resident_simulator.py"],
+    deps = [
+        ":building_radiation_utils",
+        ":tf_simulator",
+        "//third_party/py/numpy",
+        "//third_party/py/tensorflow",
+    ],
+)
+
+py_strict_test(
+    name = "tf_device_resident_simulator_test",
+    srcs = ["tf_device_resident_simulator_test.py"],
+    deps = [
+        ":numpy_scipy_simulator",
+        ":simulator_flexible_floor_plan_test",
+        ":tf_device_resident_simulator",
+        ":weather_controller",
+        "//third_party/py/absl/testing:absltest",
+        "//third_party/py/absl/testing:parameterized",
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
+    ],
+)
+
+pytype_strict_library(
+    name = "tf_coupled_interior_mass_simulator",
+    srcs = ["tf_coupled_interior_mass_simulator.py"],
+    deps = [
+        ":numpy_scipy_simulator",
+        ":tf_device_resident_simulator",
+        ":tf_simulator",
+        "//third_party/py/absl/logging",
+        "//third_party/py/numpy",
+        "//third_party/py/scipy",
+        "//third_party/py/tensorflow",
+    ],
+)
+
+py_strict_test(
+    name = "exterior_radiation_test",
+    srcs = ["exterior_radiation_test.py"],
+    deps = [
+        ":building",
+        ":cached_lu_simulator",
+        ":jax_device_resident_simulator",
+        ":jax_simulator",
+        ":numpy_scipy_simulator",
+        ":simulator_flexible_floor_plan",
+        ":simulator_flexible_floor_plan_test",
+        ":solar_radiation",
+        ":tf_coupled_interior_mass_simulator",
+        ":tf_device_resident_simulator",
+        ":tf_simulator",
+        ":weather_controller",
+        "//third_party/py/absl/testing:absltest",
+        "//third_party/py/absl/testing:parameterized",
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
+    ],
+)
+
 py_strict_test(
     name = "tf_simulator_test",
     srcs = ["tf_simulator_test.py"],
@@ -416,6 +609,25 @@ py_strict_test(
         ":weather_controller",
         "//third_party/py/absl/testing:absltest",
         "//third_party/py/google/protobuf:use_fast_cpp_protos",  # Automatically added go/proto_python_upb_flip
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
+        "//third_party/py/tensorflow:tensorflow_no_contrib",
+    ],
+)
+
+py_strict_test(
+    name = "tf_simulator_heat_balance_test",
+    srcs = ["tf_simulator_heat_balance_test.py"],
+    deps = [
+        ":numpy_scipy_simulator",
+        ":simulator",
+        ":simulator_flexible_floor_plan",
+        ":simulator_flexible_floor_plan_test",
+        ":tf_simulator",
+        ":tf_simulator_test",
+        ":weather_controller",
+        "//third_party/py/absl/testing:absltest",
+        "//third_party/py/absl/testing:parameterized",
         "//third_party/py/numpy",
         "//third_party/py/pandas",
         "//third_party/py/tensorflow:tensorflow_no_contrib",
@@ -535,9 +747,21 @@ pytype_strict_library(
 )
 
 pytype_strict_library(
+    name = "solar_radiation",
+    srcs = ["solar_radiation.py"],
+    deps = [
+        "//third_party/py/numpy",
+        "//third_party/py/pandas",
+        "//third_party/py/pvlib",
+        "//third_party/py/smart_buildings/smart_control/utils:conversion_utils",
+    ],
+)
+
+pytype_strict_library(
     name = "weather_controller",
     srcs = ["weather_controller.py"],
     deps = [
+        ":solar_radiation",
         "//third_party/py/gin",
         "//third_party/py/numpy",
         "//third_party/py/pandas",

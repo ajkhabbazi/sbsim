@@ -66,11 +66,10 @@ from absl import logging
 import gin
 import numpy as np
 import pandas as pd
-from scipy import sparse
-from scipy.sparse import linalg as sparse_linalg
 import tensorflow as tf
 
 from smart_control.simulator import building as building_py
+from smart_control.simulator import building_radiation_utils
 from smart_control.simulator import constants
 from smart_control.simulator import hvac_floorplan_based as hvac_py
 from smart_control.simulator import simulator_flexible_floor_plan as simulator
@@ -261,9 +260,8 @@ def classify_cv(
   Raises:
     ValueError: if the CV has more than four neighbors, or if its two or three
       neighbors do not sit in one of the corner or edge arrangements. Two
-      neighbors facing each other, a one CV wide corridor, has no corner
-      orientation and is rejected here. The iterative simulator does handle
-      that shape, so a floor plan containing one cannot be run on TFSimulator.
+      neighbors facing each other describe a one-CV-wide bridge or strip, which
+      the current half-cell boundary geometry does not represent and rejects.
   """
 
   def _cv_type_corner_factory(
@@ -277,18 +275,31 @@ def classify_cv(
     )
 
   def _cv_corner_type(cv_neighbors: Sequence[tuple[int, int]]) -> CVType:
-    if set([(i + 1, j), (i, j + 1)]) == set(cv_neighbors):
+    neighbor_set = set(cv_neighbors)
+    opposite_pairs = (
+        {(i, j - 1), (i, j + 1)},
+        {(i - 1, j), (i + 1, j)},
+    )
+    if neighbor_set in opposite_pairs:
+      raise ValueError(
+          'Unsupported two-neighbor CV geometry at '
+          f'{(i, j)}: neighbors {sorted(neighbor_set)} are opposite. '
+          'TFSimulator requires a two-neighbor boundary CV to form an '
+          'adjacent corner; one-CV-wide bridges or strips are unsupported.'
+      )
+    if {(i + 1, j), (i, j + 1)} == neighbor_set:
       return _cv_type_corner_factory(corner=CVCornerOrientationType.TOP_LEFT)
-    if set([(i - 1, j), (i, j + 1)]) == set(cv_neighbors):
+    if {(i - 1, j), (i, j + 1)} == neighbor_set:
       return _cv_type_corner_factory(corner=CVCornerOrientationType.BOTTOM_LEFT)
-    if set([(i + 1, j), (i, j - 1)]) == set(cv_neighbors):
+    if {(i + 1, j), (i, j - 1)} == neighbor_set:
       return _cv_type_corner_factory(corner=CVCornerOrientationType.TOP_RIGHT)
-    if set([(i - 1, j), (i, j - 1)]) == set(cv_neighbors):
+    if {(i - 1, j), (i, j - 1)} == neighbor_set:
       return _cv_type_corner_factory(
           corner=CVCornerOrientationType.BOTTOM_RIGHT
       )
     raise ValueError(
-        f"Wasn't able to determine which corner the CV {(i, j)} is."
+        f'Invalid two-neighbor CV geometry at {(i, j)}: '
+        f'neighbors={sorted(neighbor_set)}.'
     )
 
   def _cv_type_edge_factory(
@@ -842,9 +853,122 @@ def apply_exterior_temps(
   return tf.where(t_exterior_temps_mask, t_exterior_temp, t_temps)
 
 
+@tf.function(reduce_retracing=True)
+def _solve_with_preconditioned_conjugate_gradient(
+    diagonal: tf.Tensor,
+    rhs: tf.Tensor,
+    coupling_left: tf.Tensor,
+    coupling_right: tf.Tensor,
+    coupling_top: tf.Tensor,
+    coupling_bottom: tf.Tensor,
+    exterior_mask: tf.Tensor,
+    initial_temperature: tf.Tensor,
+    tolerance: tf.Tensor,
+    iteration_limit: tf.Tensor,
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+  """Solves the symmetric active-CV system with Jacobi-preconditioned CG."""
+  dtype = diagonal.dtype
+  active_mask = tf.math.logical_not(exterior_mask)
+
+  def _matvec(vector: tf.Tensor) -> tf.Tensor:
+    grid = tf.reshape(vector, tf.shape(diagonal))
+    active_grid = tf.where(active_mask, grid, tf.zeros_like(grid))
+    zero_column = tf.zeros_like(active_grid[:, :1])
+    zero_row = tf.zeros_like(active_grid[:1, :])
+    left_neighbor = tf.concat((zero_column, active_grid[:, :-1]), axis=1)
+    right_neighbor = tf.concat((active_grid[:, 1:], zero_column), axis=1)
+    top_neighbor = tf.concat((zero_row, active_grid[:-1, :]), axis=0)
+    bottom_neighbor = tf.concat((active_grid[1:, :], zero_row), axis=0)
+    result = diagonal * grid
+    result -= coupling_left * left_neighbor
+    result -= coupling_right * right_neighbor
+    result -= coupling_top * top_neighbor
+    result -= coupling_bottom * bottom_neighbor
+    result = tf.where(exterior_mask, grid, result)
+    return tf.reshape(result, [-1])
+
+  flat_diagonal = tf.reshape(diagonal, [-1])
+  flat_rhs = tf.reshape(rhs, [-1])
+  solution = tf.reshape(initial_temperature, [-1])
+  residual = flat_rhs - _matvec(solution)
+  preconditioned_residual = residual / flat_diagonal
+  direction = preconditioned_residual
+  residual_dot = tf.tensordot(residual, preconditioned_residual, axes=1)
+  rhs_norm = tf.linalg.norm(flat_rhs)
+  target_norm = tolerance * tf.maximum(rhs_norm, tf.constant(1.0, dtype))
+  iteration = tf.constant(0, dtype=tf.int32)
+
+  def _condition(
+      iteration,
+      solution,
+      residual,
+      preconditioned_residual,
+      direction,
+      residual_dot,
+  ):
+    del solution, preconditioned_residual, direction, residual_dot
+    return tf.math.logical_and(
+        iteration < iteration_limit,
+        tf.linalg.norm(residual) > target_norm,
+    )
+
+  def _body(
+      iteration,
+      solution,
+      residual,
+      preconditioned_residual,
+      direction,
+      residual_dot,
+  ):
+    del preconditioned_residual
+    matrix_direction = _matvec(direction)
+    step = residual_dot / tf.tensordot(direction, matrix_direction, axes=1)
+    next_solution = solution + step * direction
+    next_residual = residual - step * matrix_direction
+    next_preconditioned_residual = next_residual / flat_diagonal
+    next_residual_dot = tf.tensordot(
+        next_residual, next_preconditioned_residual, axes=1
+    )
+    beta = next_residual_dot / residual_dot
+    next_direction = next_preconditioned_residual + beta * direction
+    return (
+        iteration + 1,
+        next_solution,
+        next_residual,
+        next_preconditioned_residual,
+        next_direction,
+        next_residual_dot,
+    )
+
+  (
+      iteration,
+      solution,
+      residual,
+      _,
+      _,
+      _,
+  ) = tf.while_loop(
+      _condition,
+      _body,
+      (
+          iteration,
+          solution,
+          residual,
+          preconditioned_residual,
+          direction,
+          residual_dot,
+      ),
+  )
+  return (
+      tf.reshape(solution, tf.shape(diagonal)),
+      tf.linalg.norm(residual),
+      iteration,
+  )
+
+
 @gin.configurable
 class TFSimulator(simulator.SimulatorFlexibleGeometries):
-  """Tensor-based simulator that uses matrix ops to update temps.
+  """Tensor simulator with Jacobi FDM and matrix-free PCG backends.
 
   Solves the same energy balance as its base class, but over the whole grid at
   once. Everything that depends only on the geometry and the materials, the CV
@@ -866,8 +990,30 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
       start_timestamp: pd.Timestamp,
       relative_convergence_threshold: float | None = 1e-6,
       relative_convergence_streak: int = 20,
-      use_analytical_solution: bool = False,
+      solver_method: str = 'fdm',
+      cg_tolerance: float = 1e-10,
+      cg_iteration_limit: int = 2000,
   ):
+    """Initializes the tensor heat-balance simulator.
+
+    Args:
+      solver_method: `fdm` for Jacobi relaxation or `cg` for a complete
+        matrix-free preconditioned conjugate-gradient solve of each linearized
+        air-temperature system.
+      cg_tolerance: Relative residual tolerance for each CG inner solve.
+      cg_iteration_limit: Maximum CG iterations per outer fixed-point
+        iteration. Used only when solver_method is `cg`.
+      Remaining arguments: Forwarded to SimulatorFlexibleGeometries.
+    """
+
+    if solver_method not in ('fdm', 'cg'):
+      raise ValueError(
+          f"solver_method must be 'fdm' or 'cg', got {solver_method!r}"
+      )
+    if cg_tolerance <= 0.0:
+      raise ValueError('cg_tolerance must be positive')
+    if cg_iteration_limit < 1:
+      raise ValueError('cg_iteration_limit must be positive')
 
     super().__init__(
         building,
@@ -932,9 +1078,12 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
         self._boundary_cv_mapping,
     )
 
-    # When True, each step solves the implicit Euler system directly instead
-    # of relaxing towards it. See update_temperature_estimates_analytical.
-    self.use_analytical_solution = use_analytical_solution
+    self.solver_method = solver_method
+    self.cg_tolerance = cg_tolerance
+    self.cg_iteration_limit = cg_iteration_limit
+    self._solves_entire_linear_system = solver_method == 'cg'
+    self.last_cg_iteration_count = 0
+    self.last_cg_residual_norm = np.nan
 
     # radiative heat transfer addition
     self.include_radiative_heat_transfer = (
@@ -1099,6 +1248,15 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
     numerator = tf.math.add(
         t_air_temp, tf.math.multiply(self._t_0_mass, t_temp_mass_prev)
     )
+    if self._exterior_forcing is not None:
+      conductance = self._t_interior_mass_conductivity * self._t_u * self._t_v
+      conductance /= self.building.floor_height_cm / 100.0
+      numerator += tf.math.divide_no_nan(
+          tf.convert_to_tensor(
+              self._exterior_forcing.mass_gain, dtype=tf.float32
+          ),
+          conductance,
+      )
 
     # Calculate denominator: 1 + t_0_mass
     denominator = tf.math.add(
@@ -1257,8 +1415,8 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
     $T_i \to T_j$ limit.
 
     The off-diagonal coupling stays lagged at the last iterate. Making it
-    implicit would fill in the sparse five-point stencil that
-    _solve_energy_balance_system relies on, since $M$ is dense.
+    implicit would fill in the sparse five-point stencil used by the
+    matrix-free PCG operator, since $M$ is dense.
 
     Args:
       t_temp_interior_wall: enclosure temperatures [K] as a column, in the order
@@ -1591,6 +1749,15 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
     t_numer = tf.math.add(t_numer, nt5)
     return t_numer
 
+  def _tf_exterior_forcing(
+      self, forcing: building_radiation_utils.ExteriorRadiationForcing | None
+  ) -> building_radiation_utils.ExteriorRadiationForcing | None:
+    if forcing is None:
+      return None
+    return building_radiation_utils.ExteriorRadiationForcing(
+        *(tf.convert_to_tensor(value, dtype=tf.float32) for value in forcing)
+    )
+
   def update_temperature_estimates(
       self,
       temperature_estimates: np.ndarray,
@@ -1709,13 +1876,6 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
       convergence measure.
     """
 
-    if self.use_analytical_solution:
-      return self.update_temperature_estimates_analytical(
-          temperature_estimates,
-          ambient_temperature=ambient_temperature,
-          convection_coefficient=convection_coefficient,
-      )
-
     # Get the inputs to the equation as Tensors from the building.
     (
         t_temp,
@@ -1771,6 +1931,11 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
     t_lwx_coefficient, t_lwx_driving = self._get_longwave_grid_terms(
         t_temp_interior_wall, t_z
     )
+    exterior_forcing = self._tf_exterior_forcing(self._exterior_forcing)
+    if exterior_forcing is not None:
+      coefficient, driving = exterior_forcing.linearized_air_terms(t_temp)
+      t_lwx_coefficient += coefficient
+      t_input_q += driving
 
     t_denom = self._get_denominator(
         t_gamma_left,
@@ -1790,35 +1955,112 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
         t_lwx_coefficient,
     )
 
-    # Calculate the numerator terms
-    t_numer = self._get_numerator(
-        t_gamma_left,
-        t_gamma_right,
-        t_gamma_ambient_left,
-        t_gamma_ambient_right,
-        t_gamma_ambient_top,
-        t_gamma_ambient_bottom,
-        t_vz,
-        t_gamma_bottom,
-        t_gamma_top,
-        t_uz,
-        t_density,
-        t_heat_capacity,
-        t_z,
-        t_delta_t,
-        t_temp_left,
-        t_temp_right,
-        t_temp_above,
-        t_temp_below,
-        t_temp_inf,
-        t_input_q,
-        t_temp_minus,
-        t_lwx_driving,
-        t_temp_mass,
-    )
-
-    # Finally, perform an elementwise division - not a matrix inversion.
-    t_temperature_estimates = tf.math.divide(t_numer, t_denom)
+    if self.solver_method == 'fdm':
+      t_numer = self._get_numerator(
+          t_gamma_left,
+          t_gamma_right,
+          t_gamma_ambient_left,
+          t_gamma_ambient_right,
+          t_gamma_ambient_top,
+          t_gamma_ambient_bottom,
+          t_vz,
+          t_gamma_bottom,
+          t_gamma_top,
+          t_uz,
+          t_density,
+          t_heat_capacity,
+          t_z,
+          t_delta_t,
+          t_temp_left,
+          t_temp_right,
+          t_temp_above,
+          t_temp_below,
+          t_temp_inf,
+          t_input_q,
+          t_temp_minus,
+          t_lwx_driving,
+          t_temp_mass,
+      )
+      t_temperature_estimates = tf.math.divide(t_numer, t_denom)
+    else:
+      t_zeros = tf.zeros_like(t_temp)
+      t_rhs = self._get_numerator(
+          t_gamma_left,
+          t_gamma_right,
+          t_gamma_ambient_left,
+          t_gamma_ambient_right,
+          t_gamma_ambient_top,
+          t_gamma_ambient_bottom,
+          t_vz,
+          t_gamma_bottom,
+          t_gamma_top,
+          t_uz,
+          t_density,
+          t_heat_capacity,
+          t_z,
+          t_delta_t,
+          t_zeros,
+          t_zeros,
+          t_zeros,
+          t_zeros,
+          t_temp_inf,
+          t_input_q,
+          t_temp_minus,
+          t_lwx_driving,
+          t_temp_mass,
+      )
+      coupling_left = tf.math.multiply(t_vz, t_gamma_left)
+      coupling_right = tf.math.multiply(t_vz, t_gamma_right)
+      coupling_top = tf.math.multiply(t_uz, t_gamma_top)
+      coupling_bottom = tf.math.multiply(t_uz, t_gamma_bottom)
+      exterior_float = tf.cast(self._t_exerior_temps_mask, tf.float32)
+      t_rhs += t_temp_inf * (
+          coupling_left * shift_tensor_right(exterior_float)
+          + coupling_right * shift_tensor_left(exterior_float)
+          + coupling_top * shift_tensor_down(exterior_float)
+          + coupling_bottom * shift_tensor_up(exterior_float)
+      )
+      t_rhs = tf.where(
+          self._t_exerior_temps_mask,
+          tf.fill(tf.shape(t_rhs), t_temp_inf),
+          t_rhs,
+      )
+      t_cg_diagonal = tf.where(
+          self._t_exerior_temps_mask, tf.ones_like(t_denom), t_denom
+      )
+      t_initial = apply_exterior_temps(
+          t_temp, t_temp_inf, self._t_exerior_temps_mask
+      )
+      (
+          t_temperature_estimates,
+          t_residual_norm,
+          t_iteration_count,
+      ) = _solve_with_preconditioned_conjugate_gradient(
+          tf.cast(t_cg_diagonal, tf.float64),
+          tf.cast(t_rhs, tf.float64),
+          tf.cast(coupling_left, tf.float64),
+          tf.cast(coupling_right, tf.float64),
+          tf.cast(coupling_top, tf.float64),
+          tf.cast(coupling_bottom, tf.float64),
+          self._t_exerior_temps_mask,
+          tf.cast(t_initial, tf.float64),
+          tf.constant(self.cg_tolerance, dtype=tf.float64),
+          tf.constant(self.cg_iteration_limit, dtype=tf.int32),
+      )
+      self.last_cg_iteration_count = int(t_iteration_count.numpy())
+      self.last_cg_residual_norm = float(t_residual_norm.numpy())
+      t_temperature_estimates = tf.cast(
+          t_temperature_estimates, dtype=tf.float32
+      )
+      rhs_norm = float(tf.linalg.norm(tf.cast(t_rhs, tf.float64)).numpy())
+      target_norm = self.cg_tolerance * max(rhs_norm, 1.0)
+      if self.last_cg_residual_norm > target_norm:
+        raise RuntimeError(
+            'TensorFlow CG did not converge: '
+            f'iterations={self.last_cg_iteration_count}, '
+            f'residual_norm={self.last_cg_residual_norm}, '
+            f'target_norm={target_norm}'
+        )
 
     # The tensor operation potentially altered the exterior air conditions,
     # so we need to reset exterior CVs to the exterior air conditioners.
@@ -1833,242 +2075,3 @@ class TFSimulator(simulator.SimulatorFlexibleGeometries):
     # Do NOT update them here to avoid double-updating.
 
     return t_temperature_estimates.numpy(), np.max(tf.math.abs(t_delta))
-
-  def update_temperature_estimates_analytical(
-      self,
-      temperature_estimates: np.ndarray,
-      ambient_temperature: float,
-      convection_coefficient: float,
-  ) -> tuple[np.ndarray, float]:
-    r"""Solves the implicit Euler energy balance analytically.
-
-    update_temperature_estimates applies one sweep of the point relaxation
-
-    $$T \leftarrow \frac{b + \sum_f A_f\Gamma_f T_{N_f}}{d},$$
-
-    and repeats it until the sweeps stop moving. The very same balance is a
-    linear system in the whole temperature field,
-
-    $$\left[\mathrm{diag}(d) - C\right]T = b,$$
-
-    where $d$ is what _get_denominator builds, $C$ holds the area-weighted face
-    conductances $A_f\Gamma_f$ coupling each CV to its neighbors, and $b$ is
-    the numerator with every neighbor temperature set to zero, i.e. the
-    storage, source, ambient, longwave and interior-mass terms. Exterior CVs
-    are pinned to the ambient temperature, which is what apply_exterior_temps
-    does to the relaxed field.
-
-    Solving that system once gives the exact temperature the relaxation is
-    converging to, so the answer does not depend on the sweep count or on the
-    convergence threshold. It is used in place of the sweeps when the
-    simulator is built with use_analytical_solution=True.
-
-    Longwave radiation is proportional to $T^4$ and is evaluated at the
-    incoming estimate, exactly as the relaxation does, so with radiative heat
-    transfer enabled this is the exact solution of the linearized step and
-    still needs a few outer iterations to settle.
-
-    Args:
-      temperature_estimates: current temperature estimates of each CV.
-      ambient_temperature: current temperature in K of external air.
-      convection_coefficient: current wind convection coefficient (W/m2/K).
-
-    Returns:
-      The solved temperature estimates, and the maximum difference across all
-      CVs before and after the operation.
-    """
-
-    (
-        t_temp,
-        t_temp_old,
-        t_temp_minus,
-        t_input_q,
-        t_density,
-        t_heat_capacity,
-        t_z,
-        t_temp_interior_wall,
-        t_temp_mass,
-    ) = self._get_input_tensors(self.building, temperature_estimates)
-
-    (
-        t_gamma_ambient_left,
-        t_gamma_ambient_right,
-        t_gamma_ambient_top,
-        t_gamma_ambient_bottom,
-    ) = get_oriented_ambient_conductance_tensors(
-        convection_coefficient,
-        self.building.conductivity,
-        self._t_u,
-        self._t_v,
-        self._boundary_cv_mapping,
-    )
-
-    t_temp_inf = tf.constant(ambient_temperature, dtype=tf.float32)
-    t_delta_t = tf.constant(self._time_step_sec, dtype=tf.float32)
-    t_uz = tf.scalar_mul(t_z, self._t_u)
-    t_vz = tf.scalar_mul(t_z, self._t_v)
-
-    t_gamma_left = self._t_face_conductance_left
-    t_gamma_right = self._t_face_conductance_right
-    t_gamma_bottom = self._t_face_conductance_bottom
-    t_gamma_top = self._t_face_conductance_top
-
-    # Radiation is split so that the part scaling with the CV's own unknown
-    # lands on the denominator and the rest stays a source. Both are evaluated
-    # at the current field, so the exchange itself is still lagged.
-    t_lwx_coefficient, t_lwx_driving = self._get_longwave_grid_terms(
-        t_temp_interior_wall, t_z
-    )
-
-    t_denom = self._get_denominator(
-        t_gamma_left,
-        t_gamma_right,
-        t_gamma_ambient_left,
-        t_gamma_ambient_right,
-        t_gamma_ambient_top,
-        t_gamma_ambient_bottom,
-        t_vz,
-        t_gamma_bottom,
-        t_gamma_top,
-        t_uz,
-        t_density,
-        t_heat_capacity,
-        t_z,
-        t_delta_t,
-        t_lwx_coefficient,
-    )
-
-    # With every neighbor temperature zeroed, the numerator is exactly the
-    # part of the balance that does not depend on the unknown field, so it is
-    # the right hand side of the linear system.
-    t_zeros = tf.zeros_like(t_temp)
-    t_rhs = self._get_numerator(
-        t_gamma_left,
-        t_gamma_right,
-        t_gamma_ambient_left,
-        t_gamma_ambient_right,
-        t_gamma_ambient_top,
-        t_gamma_ambient_bottom,
-        t_vz,
-        t_gamma_bottom,
-        t_gamma_top,
-        t_uz,
-        t_density,
-        t_heat_capacity,
-        t_z,
-        t_delta_t,
-        t_zeros,
-        t_zeros,
-        t_zeros,
-        t_zeros,
-        t_temp_inf,
-        t_input_q,
-        t_temp_minus,
-        t_lwx_driving,
-        t_temp_mass,
-    )
-
-    # Area-weighted couplings to the four neighbors, matching the shifted
-    # temperature tensors used by the relaxation.
-    coupling = {
-        (0, -1): tf.math.multiply(t_vz, t_gamma_left).numpy(),
-        (0, 1): tf.math.multiply(t_vz, t_gamma_right).numpy(),
-        (-1, 0): tf.math.multiply(t_uz, t_gamma_top).numpy(),
-        (1, 0): tf.math.multiply(t_uz, t_gamma_bottom).numpy(),
-    }
-
-    solution = self._solve_energy_balance_system(
-        t_denom.numpy(),
-        t_rhs.numpy(),
-        coupling,
-        ambient_temperature,
-    )
-
-    t_temperature_estimates = tf.convert_to_tensor(solution, dtype=tf.float32)
-    t_temperature_estimates = apply_exterior_temps(
-        t_temperature_estimates, t_temp_inf, self._t_exerior_temps_mask
-    )
-
-    t_delta = tf.math.subtract(t_temperature_estimates, t_temp_old)
-
-    return t_temperature_estimates.numpy(), np.max(tf.math.abs(t_delta))
-
-  def _solve_energy_balance_system(
-      self,
-      diagonal: np.ndarray,
-      rhs: np.ndarray,
-      coupling: Mapping[tuple[int, int], np.ndarray],
-      ambient_temperature: float,
-  ) -> np.ndarray:
-    """Assembles and solves the sparse energy balance system.
-
-    Args:
-      diagonal: what _get_denominator builds, the total conductance [W/K] out
-        of every CV.
-      rhs: what _get_numerator builds with the neighbor temperatures zeroed,
-        i.e. the storage, source, ambient, longwave and interior-mass power
-        [W] driving every CV.
-      coupling: area-weighted face conductance per (row, column) neighbor
-        offset.
-      ambient_temperature: current temperature in K of external air.
-
-    Returns:
-      The temperature of every CV, shaped like the building grid.
-    """
-
-    rows_count, cols_count = diagonal.shape
-    cv_count = rows_count * cols_count
-    flat_index = np.arange(cv_count).reshape(rows_count, cols_count)
-    grid_i, grid_j = np.meshgrid(
-        np.arange(rows_count), np.arange(cols_count), indexing='ij'
-    )
-
-    rhs = rhs.astype(np.float64)
-    rows = [flat_index.reshape(-1)]
-    cols = [flat_index.reshape(-1)]
-    values = [diagonal.reshape(-1).astype(np.float64)]
-
-    for (offset_i, offset_j), conductance in coupling.items():
-      conductance = conductance.astype(np.float64)
-      neighbor_i = grid_i + offset_i
-      neighbor_j = grid_j + offset_j
-      in_grid = (
-          (neighbor_i >= 0)
-          & (neighbor_i < rows_count)
-          & (neighbor_j >= 0)
-          & (neighbor_j < cols_count)
-      )
-      # Off the grid there is no unknown to couple to; the relaxation pads
-      # those neighbors with the ambient temperature, so do the same here.
-      rhs = rhs + np.where(in_grid, 0.0, conductance * ambient_temperature)
-      neighbor_index = flat_index[
-          np.clip(neighbor_i, 0, rows_count - 1),
-          np.clip(neighbor_j, 0, cols_count - 1),
-      ]
-      coupled = in_grid & (conductance != 0.0)
-      rows.append(flat_index[coupled])
-      cols.append(neighbor_index[coupled])
-      values.append(-conductance[coupled])
-
-    rows = np.concatenate(rows)
-    cols = np.concatenate(cols)
-    values = np.concatenate(values)
-
-    # Exterior CVs are held at the ambient temperature rather than solved.
-    pinned = self._t_exerior_temps_mask.numpy().reshape(-1).astype(bool)
-    unpinned_entries = ~pinned[rows]
-    pinned_index = np.flatnonzero(pinned)
-    rows = np.concatenate([rows[unpinned_entries], pinned_index])
-    cols = np.concatenate([cols[unpinned_entries], pinned_index])
-    values = np.concatenate([
-        values[unpinned_entries],
-        np.ones(pinned_index.size, dtype=np.float64),
-    ])
-
-    rhs = rhs.reshape(-1)
-    rhs[pinned_index] = ambient_temperature
-
-    system = sparse.csr_matrix(
-        (values, (rows, cols)), shape=(cv_count, cv_count)
-    )
-    return sparse_linalg.spsolve(system, rhs).reshape(rows_count, cols_count)

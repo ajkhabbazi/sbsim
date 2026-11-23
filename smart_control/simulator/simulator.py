@@ -10,6 +10,8 @@ import pandas as pd
 from smart_control.models.base_occupancy import BaseOccupancy
 from smart_control.proto import smart_control_reward_pb2
 from smart_control.simulator import building as building_py
+from smart_control.simulator import building_radiation_utils
+from smart_control.simulator import constants
 from smart_control.simulator import hvac as hvac_py
 from smart_control.simulator import weather_controller as weather_controller_py
 from smart_control.utils import conversion_utils
@@ -85,12 +87,11 @@ class Simulator:
 
   #### Scope / Simplifications
 
-  This base simulator models conduction, ambient convection at boundary CVs,
-  the diffuser heat source, interior longwave radiation, and interior thermal
-  mass. It does NOT apply exterior longwave radiation ($q_{\text{lwr}}$)
-  or shortwave solar gains ($q_{\text{sol},\alpha}$,
-  $q_{\text{sol},\tau}$) to the boundary CVs or the interior mass node;
-  those terms are therefore intentionally absent from the equations below.
+  The base balance models conduction, ambient convection, diffuser heat,
+  interior longwave radiation, and interior thermal mass. When enabled,
+  exterior longwave and absorbed solar radiation enter the face CV balance
+  as powers in W. Transmitted solar radiation is assigned to connected indoor
+  air CVs or their interior mass nodes.
 
   #### Nomenclature
 
@@ -155,6 +156,9 @@ class Simulator:
     self._start_timestamp = start_timestamp
     self._relative_convergence_threshold = relative_convergence_threshold
     self._relative_convergence_streak = relative_convergence_streak
+    self._exterior_radiation_geometry = None
+    self._exterior_forcing = None
+    self._sweep_exterior_air_terms = None
     # Face geometry and the conductances built from it depend only on the
     # grid, the materials and the floor height, none of which move during a
     # simulation, but the estimators ask for them once per face per iteration.
@@ -185,6 +189,8 @@ class Simulator:
     self._face_conductance_cache.clear()
     self._ambient_face_cache.clear()
     self._longwave_terms = None
+    self.last_outer_iteration_count = 0
+    self.last_outer_max_delta = np.nan
 
   @property
   def time_step_sec(self) -> float:
@@ -209,8 +215,8 @@ class Simulator:
     both, which is what puts the factors of 1/2 and 1/4 in their volumes.
 
     The two axes are checked independently: $u$ is halved when the CV is open
-    to the ambient above or below, and $v$ when it is open to the left or the
-    right. This is what makes a reentrant corner come out right, where asking
+    to the ambient on the left or right, and $v$ when it is open above or
+    below. This is what makes a reentrant corner come out right, where asking
     only how many neighbors a CV has cannot tell which axis was narrowed.
 
     Note:
@@ -416,6 +422,10 @@ class Simulator:
     )
     neighbor_transfer += ambient_conductance * ambient_temperature
     denominator += ambient_conductance
+    if self._sweep_exterior_air_terms is not None:
+      coefficient, driving = self._sweep_exterior_air_terms
+      denominator += coefficient[x, y]
+      neighbor_transfer += driving[x, y]
 
     return neighbor_transfer / denominator
 
@@ -448,10 +458,8 @@ class Simulator:
     _get_ambient_conductance. Solving for $T_{i,j}$ gives the expression
     evaluated by _get_boundary_cv_temp_estimate.
 
-    Note:
-      Exterior longwave radiation ($q_{\text{lwr}}$) and solar gains
-      ($q_{\text{sol}}$) are not modeled by this base simulator, so those
-      terms do not appear.
+    Optional exterior radiation adds the sum of the exposed face powers to
+    the numerator.
 
     **Nomenclature and Units**
 
@@ -527,10 +535,7 @@ class Simulator:
     see _get_ambient_conductance. Solving for $T_{i,j}$ gives the expression
     evaluated by _get_boundary_cv_temp_estimate.
 
-    Note:
-      Exterior longwave radiation ($q_{\text{lwr}}$) and solar gains
-      ($q_{\text{sol}}$) are not modeled by this base simulator, so those
-      terms do not appear.
+    Optional exterior radiation adds the exposed face power to the numerator.
 
     **Nomenclature and Units**
 
@@ -681,6 +686,10 @@ class Simulator:
 
     neighbor_transfer = 0.0
     denominator = t0
+    if self._sweep_exterior_air_terms is not None:
+      coefficient, driving = self._sweep_exterior_air_terms
+      denominator += coefficient[x, y]
+      input_q += driving[x, y]
 
     for nx, ny in neighbors:
       conductance = self._get_face_conductance(cv_coordinates, (nx, ny))
@@ -815,6 +824,81 @@ class Simulator:
     )
     return get_exchange_terms(temperature_estimates)
 
+  @property
+  def include_exterior_radiative_heat_transfer(self) -> bool:
+    return getattr(
+        self.building, 'include_exterior_radiative_heat_transfer', False
+    )
+
+  def _build_exterior_radiation_geometry(
+      self,
+  ) -> building_radiation_utils.ExteriorRadiationGeometry:
+    building = self.building
+    floor_plan = building.floor_plan
+    glass = floor_plan == constants.FENESTRATION_VALUE_IN_FILE_INPUT
+    wall = floor_plan == constants.INTERIOR_WALL_VALUE_IN_FILE_INPUT
+    active = building.len_neighbors >= 2
+    z = building.floor_height_cm / 100.0
+    face_areas = np.zeros((4,) + floor_plan.shape)
+    for x, y in zip(*np.where(active & (glass | wall))):
+      neighbors = {tuple(n) for n in building.neighbors[x][y]}
+      if len(neighbors) == 4:
+        continue
+      u, v = self._get_cv_dimensions((x, y))
+      for i, (dx, dy) in enumerate(
+          building_radiation_utils.FOUR_CONNECTED_DIRECTIONS
+      ):
+        if (x + dx, y + dy) not in neighbors:
+          face_areas[i, x, y] = (u if dx else v) * z
+
+    wall_properties = building.exterior_wall_radiative_properties
+    glass_properties = building.fenestration_radiative_properties
+    exposed_area = face_areas.sum(axis=0)
+    indoor_air = active & (
+        floor_plan == constants.INTERIOR_SPACE_VALUE_IN_FILE_INPUT
+    )
+    return building_radiation_utils.ExteriorRadiationGeometry(
+        face_areas=face_areas,
+        azimuths=tuple(
+            (azimuth + building.floor_plan_orientation) % 360.0
+            for azimuth in building_radiation_utils.EXTERIOR_FACE_AZIMUTHS
+        ),
+        absorptivity=np.where(
+            glass, glass_properties.alpha, wall_properties.alpha
+        ),
+        emission=exposed_area
+        * constants.STEFAN_BOLTZMANN_CONSTANT
+        * np.where(glass, glass_properties.epsilon, wall_properties.epsilon),
+        transmittance=glass_properties.tau,
+        window_targets=(
+            building_radiation_utils.exterior_window_targets(
+                floor_plan, indoor_air, exposed_area > 0.0
+            )
+            if glass_properties.tau > 0.0
+            else ()
+        ),
+        mass_mask=(
+            building.interior_mass_mask
+            if building.include_interior_mass
+            else np.zeros(floor_plan.shape, dtype=bool)
+        ),
+    )
+
+  def _prepare_exterior_radiation(
+      self, ambient_temperature: float
+  ) -> building_radiation_utils.ExteriorRadiationForcing | None:
+    """Samples weather and converts irradiance to CV power for one timestep."""
+    if not self.include_exterior_radiative_heat_transfer:
+      return None
+    if self._exterior_radiation_geometry is None:
+      self._exterior_radiation_geometry = (
+          self._build_exterior_radiation_geometry()
+      )
+    weather = self._weather_controller.get_exterior_radiation(
+        self.current_timestamp, ambient_temperature
+    )
+    return self._exterior_radiation_geometry.forcing(weather)
+
   def update_temperature_estimates(
       self,
       temperature_estimates: np.ndarray,
@@ -842,6 +926,10 @@ class Simulator:
     # One dense enclosure product for the whole sweep instead of one per CV.
     # Cleared afterwards so nothing outside the sweep can read it back.
     self._longwave_terms = self._get_longwave_terms(temperature_estimates)
+    if self._exterior_forcing is not None:
+      self._sweep_exterior_air_terms = (
+          self._exterior_forcing.linearized_air_terms(temperature_estimates)
+      )
     try:
       for x in range(nrows):
         for y in range(ncols):
@@ -858,6 +946,7 @@ class Simulator:
           temperature_estimates[x][y] = temp_estimate
     finally:
       self._longwave_terms = None
+      self._sweep_exterior_air_terms = None
 
     return temperature_estimates, max_delta
 
@@ -991,7 +1080,12 @@ class Simulator:
         denominator = 1.0 + t0_mass
 
         # New interior mass temperature
-        new_temp = (air_temp + t0_mass * interior_mass_temp) / denominator
+        numerator = air_temp + t0_mass * interior_mass_temp
+        if self._exterior_forcing is not None:
+          u, v = self._get_cv_dimensions((x, y))
+          mass_conductance = interior_mass_conductivity * u * v / z
+          numerator += self._exterior_forcing.mass_gain[x, y] / mass_conductance
+        new_temp = numerator / denominator
 
         # Track maximum change
         delta = abs(new_temp - interior_mass_temp)
@@ -1003,6 +1097,20 @@ class Simulator:
 
   def finite_differences_timestep(
       self, *, ambient_temperature: float, convection_coefficient: float
+  ) -> bool:
+    """Advances the heat balance with one exterior weather sample per step."""
+    self._exterior_forcing = self._prepare_exterior_radiation(
+        ambient_temperature
+    )
+    try:
+      return self._iterate_temperature_timestep(
+          ambient_temperature, convection_coefficient
+      )
+    finally:
+      self._exterior_forcing = None
+
+  def _iterate_temperature_timestep(
+      self, ambient_temperature: float, convection_coefficient: float
   ) -> bool:
     """Calculates the temperature for each Control Volume (CV) after a step.
 
@@ -1037,6 +1145,14 @@ class Simulator:
         hasattr(self.building, 'include_interior_mass')
         and self.building.include_interior_mass
     )
+    complete_linear_solve = (
+        bool(getattr(self, '_solves_entire_linear_system', False))
+        and not include_interior_mass
+        and self._exterior_forcing is None
+        and not bool(
+            getattr(self.building, 'include_radiative_heat_transfer', False)
+        )
+    )
 
     if include_interior_mass:
       # Interior mass temperature at the start of the step. Every iteration
@@ -1046,6 +1162,8 @@ class Simulator:
       interior_mass_temp_estimate = interior_mass_temp_last_step.copy()
 
     converged_successfully = False
+    max_delta = np.inf
+    iteration_count = -1
     for iteration_count in range(self._iteration_limit):
       # Update air CV temperatures
       temp_estimate, max_delta_air = self.update_temperature_estimates(
@@ -1075,6 +1193,10 @@ class Simulator:
         max_delta = max(max_delta_air, max_delta_mass)
       else:
         max_delta = max_delta_air
+
+      if complete_linear_solve:
+        converged_successfully = True
+        break
 
       if iteration_count + 1 == self._iteration_warning:
         if include_interior_mass:
@@ -1112,6 +1234,8 @@ class Simulator:
 
     # Final update of building temperatures
     self.building.temp = temp_estimate
+    self.last_outer_iteration_count = iteration_count + 1
+    self.last_outer_max_delta = float(max_delta)
 
     # Interior mass temperatures are already updated in the loop
     # No need for additional update here

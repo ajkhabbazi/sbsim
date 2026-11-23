@@ -297,6 +297,16 @@ class TFSimulatorTest(absltest.TestCase):
         expected_cv_mapping,
     )
 
+  def test_classify_cv_rejects_opposite_two_neighbor_geometry(self):
+    neighbors = [[[] for _ in range(3)] for _ in range(3)]
+    neighbors[1][1] = [(1, 0), (1, 2)]
+
+    with self.assertRaisesRegex(
+        ValueError,
+        r"Unsupported two-neighbor CV geometry at \(1, 1\).*are opposite",
+    ):
+      tf_simulator_py.classify_cv((1, 1), neighbors)
+
   def test_cv_dimension_tensors(self):
 
     expected_horizontal_dims = np.array([

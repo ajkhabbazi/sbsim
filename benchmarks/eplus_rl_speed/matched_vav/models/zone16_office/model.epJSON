@@ -1,0 +1,5323 @@
+{
+  "Version": {
+    "Version": {
+      "version_identifier": "24.2"
+    }
+  },
+  "Building": {
+    "Matched VAV": {
+      "solar_distribution": "FullExterior"
+    }
+  },
+  "Timestep": {
+    "Timestep": {
+      "number_of_timesteps_per_hour": 12
+    }
+  },
+  "SimulationControl": {
+    "Simulation": {
+      "do_zone_sizing_calculation": "No",
+      "do_system_sizing_calculation": "No",
+      "do_plant_sizing_calculation": "No",
+      "run_simulation_for_sizing_periods": "No",
+      "run_simulation_for_weather_file_run_periods": "Yes"
+    }
+  },
+  "RunPeriod": {
+    "Smoke Day": {
+      "begin_month": 7,
+      "begin_day_of_month": 15,
+      "end_month": 7,
+      "end_day_of_month": 15,
+      "begin_year": 2024,
+      "end_year": 2024,
+      "use_weather_file_holidays_and_special_days": "No",
+      "use_weather_file_daylight_saving_period": "No"
+    }
+  },
+  "ScheduleTypeLimits": {
+    "Fraction": {
+      "lower_limit_value": 0,
+      "upper_limit_value": 1,
+      "numeric_type": "Continuous"
+    },
+    "Thermostat Mode": {
+      "lower_limit_value": 0,
+      "upper_limit_value": 4,
+      "numeric_type": "Discrete"
+    },
+    "Temperature": {
+      "unit_type": "Temperature"
+    },
+    "Occupant Activity": {
+      "lower_limit_value": 0.0,
+      "numeric_type": "Continuous"
+    }
+  },
+  "Schedule:Constant": {
+    "On": {
+      "schedule_type_limits_name": "Fraction",
+      "hourly_value": 1
+    },
+    "Control Type": {
+      "schedule_type_limits_name": "Thermostat Mode",
+      "hourly_value": 4
+    },
+    "Heating Setpoint": {
+      "schedule_type_limits_name": "Temperature",
+      "hourly_value": 21.0
+    },
+    "Cooling Setpoint": {
+      "schedule_type_limits_name": "Temperature",
+      "hourly_value": 24.0
+    },
+    "Supply Setpoint": {
+      "schedule_type_limits_name": "Temperature",
+      "hourly_value": 16.0
+    },
+    "Office Activity": {
+      "schedule_type_limits_name": "Occupant Activity",
+      "hourly_value": 120.0
+    }
+  },
+  "ThermostatSetpoint:DualSetpoint": {
+    "Zone Setpoints": {
+      "heating_setpoint_temperature_schedule_name": "Heating Setpoint",
+      "cooling_setpoint_temperature_schedule_name": "Cooling Setpoint"
+    }
+  },
+  "GlobalGeometryRules": {
+    "Geometry": {
+      "starting_vertex_position": "UpperLeftCorner",
+      "vertex_entry_direction": "Counterclockwise",
+      "coordinate_system": "World"
+    }
+  },
+  "Material": {
+    "Solid Wall": {
+      "roughness": "MediumRough",
+      "thickness": 0.5,
+      "conductivity": 0.5,
+      "density": 1800.0,
+      "specific_heat": 800.0
+    }
+  },
+  "Material:NoMass": {
+    "Slab Resistance": {
+      "roughness": "MediumRough",
+      "thermal_resistance": 1.0
+    }
+  },
+  "Construction": {
+    "Wall": {
+      "outside_layer": "Solid Wall"
+    },
+    "Slab": {
+      "outside_layer": "Slab Resistance"
+    },
+    "Window": {
+      "outside_layer": "Glazing"
+    }
+  },
+  "WindowMaterial:SimpleGlazingSystem": {
+    "Glazing": {
+      "u_factor": 2.8,
+      "solar_heat_gain_coefficient": 0.55,
+      "visible_transmittance": 0.6
+    }
+  },
+  "Zone": {
+    "room_1": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_2": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_3": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_4": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_5": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_6": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_7": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_8": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_9": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_10": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_11": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_12": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_13": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_14": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_15": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    },
+    "room_16": {
+      "ceiling_height": 3.0,
+      "volume": 60.0,
+      "floor_area": 20.0
+    }
+  },
+  "BuildingSurface:Detailed": {
+    "room_1 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_1",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_1 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_1",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_1 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_1",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_5 north"
+    },
+    "room_1 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_1",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_2 west"
+    },
+    "room_1 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_1",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_1 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_1",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_2 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_2",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_2 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_2",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_2 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_2",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_6 north"
+    },
+    "room_2 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_2",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_3 west"
+    },
+    "room_2 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_2",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_2 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_2",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_1 east"
+    },
+    "room_3 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_3",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_3 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_3",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_3 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_3",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_7 north"
+    },
+    "room_3 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_3",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_4 west"
+    },
+    "room_3 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_3",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_3 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_3",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_2 east"
+    },
+    "room_4 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_4",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_4 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_4",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_4 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_4",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_8 north"
+    },
+    "room_4 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_4",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_4 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_4",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_4 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_4",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 18.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 14.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_3 east"
+    },
+    "room_5 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_5",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_5 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_5",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_5 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_5",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_9 north"
+    },
+    "room_5 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_5",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_6 west"
+    },
+    "room_5 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_5",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_1 south"
+    },
+    "room_5 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_5",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_6 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_6",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_6 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_6",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_6 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_6",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_10 north"
+    },
+    "room_6 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_6",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_7 west"
+    },
+    "room_6 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_6",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_2 south"
+    },
+    "room_6 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_6",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_5 east"
+    },
+    "room_7 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_7",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_7 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_7",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_7 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_7",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_11 north"
+    },
+    "room_7 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_7",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_8 west"
+    },
+    "room_7 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_7",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_3 south"
+    },
+    "room_7 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_7",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_6 east"
+    },
+    "room_8 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_8",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_8 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_8",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_8 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_8",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_12 north"
+    },
+    "room_8 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_8",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_8 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_8",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_4 south"
+    },
+    "room_8 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_8",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 13.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_7 east"
+    },
+    "room_9 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_9",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_9 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_9",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_9 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_9",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_13 north"
+    },
+    "room_9 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_9",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_10 west"
+    },
+    "room_9 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_9",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_5 south"
+    },
+    "room_9 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_9",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_10 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_10",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_10 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_10",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_10 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_10",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_14 north"
+    },
+    "room_10 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_10",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_11 west"
+    },
+    "room_10 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_10",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_6 south"
+    },
+    "room_10 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_10",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_9 east"
+    },
+    "room_11 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_11",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_11 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_11",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_11 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_11",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_15 north"
+    },
+    "room_11 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_11",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_12 west"
+    },
+    "room_11 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_11",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_7 south"
+    },
+    "room_11 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_11",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_10 east"
+    },
+    "room_12 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_12",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_12 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_12",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_12 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_12",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_16 north"
+    },
+    "room_12 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_12",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_12 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_12",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_8 south"
+    },
+    "room_12 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_12",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 9.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 5.0,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_11 east"
+    },
+    "room_13 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_13",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_13 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_13",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_13 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_13",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_13 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_13",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_14 west"
+    },
+    "room_13 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_13",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 5.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_9 south"
+    },
+    "room_13 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_13",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 0.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_14 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_14",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_14 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_14",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_14 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_14",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_14 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_14",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_15 west"
+    },
+    "room_14 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_14",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_10 south"
+    },
+    "room_14 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_14",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 6.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_13 east"
+    },
+    "room_15 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_15",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_15 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_15",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_15 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_15",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_15 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_15",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_16 west"
+    },
+    "room_15 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_15",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 16.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_11 south"
+    },
+    "room_15 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_15",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 11.5,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_14 east"
+    },
+    "room_16 floor": {
+      "surface_type": "Floor",
+      "construction_name": "Slab",
+      "zone_name": "room_16",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        }
+      ]
+    },
+    "room_16 ceiling": {
+      "surface_type": "Ceiling",
+      "construction_name": "Slab",
+      "zone_name": "room_16",
+      "outside_boundary_condition": "Adiabatic",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_16 south": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_16",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_16 east": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_16",
+      "outside_boundary_condition": "Outdoors",
+      "sun_exposure": "SunExposed",
+      "wind_exposure": "WindExposed",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ]
+    },
+    "room_16 north": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_16",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 22.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_12 south"
+    },
+    "room_16 west": {
+      "surface_type": "Wall",
+      "construction_name": "Wall",
+      "zone_name": "room_16",
+      "outside_boundary_condition": "Surface",
+      "sun_exposure": "NoSun",
+      "wind_exposure": "NoWind",
+      "vertices": [
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 3.0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 4.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 0
+        },
+        {
+          "vertex_x_coordinate": 17.0,
+          "vertex_y_coordinate": 0.5,
+          "vertex_z_coordinate": 3.0
+        }
+      ],
+      "outside_boundary_condition_object": "room_15 east"
+    }
+  },
+  "FenestrationSurface:Detailed": {
+    "room_1 north window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_1 north",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 4.0,
+      "vertex_1_y_coordinate": 18.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 4.0,
+      "vertex_2_y_coordinate": 18.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 2.0,
+      "vertex_3_y_coordinate": 18.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 2.0,
+      "vertex_4_y_coordinate": 18.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_1 west window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_1 west",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 0.5,
+      "vertex_1_y_coordinate": 17.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 0.5,
+      "vertex_2_y_coordinate": 17.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 0.5,
+      "vertex_3_y_coordinate": 15.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 0.5,
+      "vertex_4_y_coordinate": 15.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_2 north window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_2 north",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 9.5,
+      "vertex_1_y_coordinate": 18.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 9.5,
+      "vertex_2_y_coordinate": 18.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 7.5,
+      "vertex_3_y_coordinate": 18.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 7.5,
+      "vertex_4_y_coordinate": 18.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_3 north window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_3 north",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 15.0,
+      "vertex_1_y_coordinate": 18.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 15.0,
+      "vertex_2_y_coordinate": 18.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 13.0,
+      "vertex_3_y_coordinate": 18.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 13.0,
+      "vertex_4_y_coordinate": 18.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_4 east window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_4 east",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 22.0,
+      "vertex_1_y_coordinate": 15.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 22.0,
+      "vertex_2_y_coordinate": 15.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 22.0,
+      "vertex_3_y_coordinate": 17.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 22.0,
+      "vertex_4_y_coordinate": 17.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_4 north window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_4 north",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 20.5,
+      "vertex_1_y_coordinate": 18.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 20.5,
+      "vertex_2_y_coordinate": 18.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 18.5,
+      "vertex_3_y_coordinate": 18.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 18.5,
+      "vertex_4_y_coordinate": 18.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_5 west window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_5 west",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 0.5,
+      "vertex_1_y_coordinate": 12.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 0.5,
+      "vertex_2_y_coordinate": 12.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 0.5,
+      "vertex_3_y_coordinate": 10.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 0.5,
+      "vertex_4_y_coordinate": 10.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_8 east window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_8 east",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 22.0,
+      "vertex_1_y_coordinate": 10.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 22.0,
+      "vertex_2_y_coordinate": 10.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 22.0,
+      "vertex_3_y_coordinate": 12.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 22.0,
+      "vertex_4_y_coordinate": 12.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_9 west window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_9 west",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 0.5,
+      "vertex_1_y_coordinate": 8.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 0.5,
+      "vertex_2_y_coordinate": 8.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 0.5,
+      "vertex_3_y_coordinate": 6.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 0.5,
+      "vertex_4_y_coordinate": 6.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_12 east window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_12 east",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 22.0,
+      "vertex_1_y_coordinate": 6.0,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 22.0,
+      "vertex_2_y_coordinate": 6.0,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 22.0,
+      "vertex_3_y_coordinate": 8.0,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 22.0,
+      "vertex_4_y_coordinate": 8.0,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_13 south window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_13 south",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 2.0,
+      "vertex_1_y_coordinate": 0.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 2.0,
+      "vertex_2_y_coordinate": 0.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 4.0,
+      "vertex_3_y_coordinate": 0.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 4.0,
+      "vertex_4_y_coordinate": 0.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_13 west window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_13 west",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 0.5,
+      "vertex_1_y_coordinate": 3.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 0.5,
+      "vertex_2_y_coordinate": 3.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 0.5,
+      "vertex_3_y_coordinate": 1.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 0.5,
+      "vertex_4_y_coordinate": 1.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_14 south window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_14 south",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 7.5,
+      "vertex_1_y_coordinate": 0.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 7.5,
+      "vertex_2_y_coordinate": 0.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 9.5,
+      "vertex_3_y_coordinate": 0.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 9.5,
+      "vertex_4_y_coordinate": 0.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_15 south window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_15 south",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 13.0,
+      "vertex_1_y_coordinate": 0.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 13.0,
+      "vertex_2_y_coordinate": 0.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 15.0,
+      "vertex_3_y_coordinate": 0.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 15.0,
+      "vertex_4_y_coordinate": 0.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_16 south window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_16 south",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 18.5,
+      "vertex_1_y_coordinate": 0.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 18.5,
+      "vertex_2_y_coordinate": 0.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 20.5,
+      "vertex_3_y_coordinate": 0.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 20.5,
+      "vertex_4_y_coordinate": 0.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    },
+    "room_16 east window": {
+      "surface_type": "Window",
+      "construction_name": "Window",
+      "building_surface_name": "room_16 east",
+      "number_of_vertices": 4,
+      "vertex_1_x_coordinate": 22.0,
+      "vertex_1_y_coordinate": 1.5,
+      "vertex_1_z_coordinate": 2.4000000000000004,
+      "vertex_2_x_coordinate": 22.0,
+      "vertex_2_y_coordinate": 1.5,
+      "vertex_2_z_coordinate": 0.6000000000000001,
+      "vertex_3_x_coordinate": 22.0,
+      "vertex_3_y_coordinate": 3.5,
+      "vertex_3_z_coordinate": 0.6000000000000001,
+      "vertex_4_x_coordinate": 22.0,
+      "vertex_4_y_coordinate": 3.5,
+      "vertex_4_z_coordinate": 2.4000000000000004
+    }
+  },
+  "AirLoopHVAC": {
+    "Central VAV": {
+      "design_supply_air_flow_rate": 1.6,
+      "branch_list_name": "Supply Branches",
+      "supply_side_inlet_node_name": "Loop Inlet",
+      "demand_side_outlet_node_name": "Demand Return",
+      "demand_side_inlet_node_names": "Demand Supply",
+      "supply_side_outlet_node_names": "Loop Outlet"
+    }
+  },
+  "BranchList": {
+    "Supply Branches": {
+      "branches": [
+        {
+          "branch_name": "Supply Branch"
+        }
+      ]
+    }
+  },
+  "OutdoorAir:Node": {
+    "Outdoor Intake": {}
+  },
+  "OutdoorAir:Mixer": {
+    "Outdoor Air Mixer": {
+      "mixed_air_node_name": "Mixed Air",
+      "outdoor_air_stream_node_name": "Outdoor Intake",
+      "relief_air_stream_node_name": "Relief Air",
+      "return_air_stream_node_name": "Loop Inlet"
+    }
+  },
+  "Controller:OutdoorAir": {
+    "Outdoor Air Controller": {
+      "relief_air_outlet_node_name": "Relief Air",
+      "return_air_node_name": "Loop Inlet",
+      "mixed_air_node_name": "Mixed Air",
+      "actuator_node_name": "Outdoor Intake",
+      "minimum_outdoor_air_flow_rate": 0.0,
+      "maximum_outdoor_air_flow_rate": 1.6,
+      "economizer_control_type": "NoEconomizer",
+      "minimum_fraction_of_outdoor_air_schedule_name": "Office Outdoor Air Fraction",
+      "maximum_fraction_of_outdoor_air_schedule_name": "Office Outdoor Air Fraction"
+    }
+  },
+  "AirLoopHVAC:ControllerList": {
+    "Outdoor Air Controllers": {
+      "controller_1_object_type": "Controller:OutdoorAir",
+      "controller_1_name": "Outdoor Air Controller"
+    }
+  },
+  "AirLoopHVAC:OutdoorAirSystem:EquipmentList": {
+    "Outdoor Air Equipment": {
+      "component_1_object_type": "OutdoorAir:Mixer",
+      "component_1_name": "Outdoor Air Mixer"
+    }
+  },
+  "AirLoopHVAC:OutdoorAirSystem": {
+    "Outdoor Air System": {
+      "controller_list_name": "Outdoor Air Controllers",
+      "outdoor_air_equipment_list_name": "Outdoor Air Equipment"
+    }
+  },
+  "Branch": {
+    "Supply Branch": {
+      "components": [
+        {
+          "component_object_type": "AirLoopHVAC:OutdoorAirSystem",
+          "component_name": "Outdoor Air System",
+          "component_inlet_node_name": "Loop Inlet",
+          "component_outlet_node_name": "Mixed Air"
+        },
+        {
+          "component_object_type": "Fan:VariableVolume",
+          "component_name": "Supply Fan",
+          "component_inlet_node_name": "Mixed Air",
+          "component_outlet_node_name": "Fan Outlet"
+        },
+        {
+          "component_object_type": "CoilSystem:Cooling:DX",
+          "component_name": "DX System",
+          "component_inlet_node_name": "Fan Outlet",
+          "component_outlet_node_name": "Loop Outlet"
+        }
+      ]
+    }
+  },
+  "AirLoopHVAC:SupplyPath": {
+    "Supply Path": {
+      "supply_air_path_inlet_node_name": "Demand Supply",
+      "components": [
+        {
+          "component_object_type": "AirLoopHVAC:ZoneSplitter",
+          "component_name": "Zone Splitter"
+        }
+      ]
+    }
+  },
+  "AirLoopHVAC:ZoneSplitter": {
+    "Zone Splitter": {
+      "inlet_node_name": "Demand Supply",
+      "nodes": [
+        {
+          "outlet_node_name": "room_1 Box In"
+        },
+        {
+          "outlet_node_name": "room_2 Box In"
+        },
+        {
+          "outlet_node_name": "room_3 Box In"
+        },
+        {
+          "outlet_node_name": "room_4 Box In"
+        },
+        {
+          "outlet_node_name": "room_5 Box In"
+        },
+        {
+          "outlet_node_name": "room_6 Box In"
+        },
+        {
+          "outlet_node_name": "room_7 Box In"
+        },
+        {
+          "outlet_node_name": "room_8 Box In"
+        },
+        {
+          "outlet_node_name": "room_9 Box In"
+        },
+        {
+          "outlet_node_name": "room_10 Box In"
+        },
+        {
+          "outlet_node_name": "room_11 Box In"
+        },
+        {
+          "outlet_node_name": "room_12 Box In"
+        },
+        {
+          "outlet_node_name": "room_13 Box In"
+        },
+        {
+          "outlet_node_name": "room_14 Box In"
+        },
+        {
+          "outlet_node_name": "room_15 Box In"
+        },
+        {
+          "outlet_node_name": "room_16 Box In"
+        }
+      ]
+    }
+  },
+  "AirLoopHVAC:ReturnPath": {
+    "Return Path": {
+      "return_air_path_outlet_node_name": "Demand Return",
+      "components": [
+        {
+          "component_object_type": "AirLoopHVAC:ZoneMixer",
+          "component_name": "Zone Mixer"
+        }
+      ]
+    }
+  },
+  "AirLoopHVAC:ZoneMixer": {
+    "Zone Mixer": {
+      "outlet_node_name": "Demand Return",
+      "nodes": [
+        {
+          "inlet_node_name": "room_1 Return"
+        },
+        {
+          "inlet_node_name": "room_2 Return"
+        },
+        {
+          "inlet_node_name": "room_3 Return"
+        },
+        {
+          "inlet_node_name": "room_4 Return"
+        },
+        {
+          "inlet_node_name": "room_5 Return"
+        },
+        {
+          "inlet_node_name": "room_6 Return"
+        },
+        {
+          "inlet_node_name": "room_7 Return"
+        },
+        {
+          "inlet_node_name": "room_8 Return"
+        },
+        {
+          "inlet_node_name": "room_9 Return"
+        },
+        {
+          "inlet_node_name": "room_10 Return"
+        },
+        {
+          "inlet_node_name": "room_11 Return"
+        },
+        {
+          "inlet_node_name": "room_12 Return"
+        },
+        {
+          "inlet_node_name": "room_13 Return"
+        },
+        {
+          "inlet_node_name": "room_14 Return"
+        },
+        {
+          "inlet_node_name": "room_15 Return"
+        },
+        {
+          "inlet_node_name": "room_16 Return"
+        }
+      ]
+    }
+  },
+  "Fan:VariableVolume": {
+    "Supply Fan": {
+      "availability_schedule_name": "On",
+      "fan_total_efficiency": 0.7,
+      "pressure_rise": 600.0,
+      "maximum_flow_rate": 1.6,
+      "fan_power_minimum_flow_rate_input_method": "Fraction",
+      "fan_power_minimum_flow_fraction": 0.5,
+      "motor_efficiency": 0.9,
+      "motor_in_airstream_fraction": 1.0,
+      "fan_power_coefficient_1": 0.0,
+      "fan_power_coefficient_2": 0.0,
+      "fan_power_coefficient_3": 0.0,
+      "fan_power_coefficient_4": 1.0,
+      "fan_power_coefficient_5": 0.0,
+      "air_inlet_node_name": "Mixed Air",
+      "air_outlet_node_name": "Fan Outlet"
+    }
+  },
+  "CoilSystem:Cooling:DX": {
+    "DX System": {
+      "availability_schedule_name": "On",
+      "dx_cooling_coil_system_inlet_node_name": "Fan Outlet",
+      "dx_cooling_coil_system_outlet_node_name": "Loop Outlet",
+      "dx_cooling_coil_system_sensor_node_name": "Loop Outlet",
+      "cooling_coil_object_type": "Coil:Cooling:DX:SingleSpeed",
+      "cooling_coil_name": "Central DX Coil"
+    }
+  },
+  "Curve:Biquadratic": {
+    "DX Temperature Modifier": {
+      "coefficient1_constant": 1.0,
+      "coefficient2_x": 0.0,
+      "coefficient3_x_2": 0.0,
+      "coefficient4_y": 0.0,
+      "coefficient5_y_2": 0.0,
+      "coefficient6_x_y": 0.0,
+      "minimum_value_of_x": 0.0,
+      "maximum_value_of_x": 40.0,
+      "minimum_value_of_y": -30.0,
+      "maximum_value_of_y": 60.0
+    }
+  },
+  "Curve:Quadratic": {
+    "DX Capacity Flow Modifier": {
+      "coefficient1_constant": 0.0,
+      "coefficient2_x": 1.0,
+      "coefficient3_x_2": 0.0,
+      "minimum_value_of_x": 0.0,
+      "maximum_value_of_x": 1.5
+    },
+    "DX EIR Flow Modifier": {
+      "coefficient1_constant": 1.0,
+      "coefficient2_x": 0.0,
+      "coefficient3_x_2": 0.0,
+      "minimum_value_of_x": 0.0,
+      "maximum_value_of_x": 1.5
+    },
+    "DX Part Load": {
+      "coefficient1_constant": 0.85,
+      "coefficient2_x": 0.15,
+      "coefficient3_x_2": 0.0,
+      "minimum_value_of_x": 0.0,
+      "maximum_value_of_x": 1.0
+    }
+  },
+  "Coil:Cooling:DX:SingleSpeed": {
+    "Central DX Coil": {
+      "availability_schedule_name": "On",
+      "gross_rated_total_cooling_capacity": 28000.0,
+      "gross_rated_sensible_heat_ratio": 0.72,
+      "gross_rated_cooling_cop": 3.0,
+      "rated_air_flow_rate": 1.6,
+      "minimum_outdoor_dry_bulb_temperature_for_compressor_operation": 0.0,
+      "air_inlet_node_name": "Fan Outlet",
+      "air_outlet_node_name": "Loop Outlet",
+      "total_cooling_capacity_function_of_temperature_curve_name": "DX Temperature Modifier",
+      "total_cooling_capacity_function_of_flow_fraction_curve_name": "DX Capacity Flow Modifier",
+      "energy_input_ratio_function_of_temperature_curve_name": "DX Temperature Modifier",
+      "energy_input_ratio_function_of_flow_fraction_curve_name": "DX EIR Flow Modifier",
+      "part_load_fraction_correlation_curve_name": "DX Part Load"
+    }
+  },
+  "SetpointManager:Scheduled": {
+    "Supply Setpoint Manager": {
+      "control_variable": "Temperature",
+      "schedule_name": "Supply Setpoint",
+      "setpoint_node_or_nodelist_name": "Loop Outlet"
+    }
+  },
+  "Schedule:Compact": {
+    "Office Outdoor Air Fraction": {
+      "schedule_type_limits_name": "Fraction",
+      "data": [
+        {
+          "field": "Through: 12/31"
+        },
+        {
+          "field": "For: AllDays"
+        },
+        {
+          "field": "Until: 07:00"
+        },
+        {
+          "field": 0.05
+        },
+        {
+          "field": "Until: 19:00"
+        },
+        {
+          "field": 0.2
+        },
+        {
+          "field": "Until: 24:00"
+        },
+        {
+          "field": 0.05
+        }
+      ]
+    },
+    "Office Lights": {
+      "schedule_type_limits_name": "Fraction",
+      "data": [
+        {
+          "field": "Through: 12/31"
+        },
+        {
+          "field": "For: AllDays"
+        },
+        {
+          "field": "Until: 07:00"
+        },
+        {
+          "field": 0.05
+        },
+        {
+          "field": "Until: 08:00"
+        },
+        {
+          "field": 0.45
+        },
+        {
+          "field": "Until: 18:00"
+        },
+        {
+          "field": 0.95
+        },
+        {
+          "field": "Until: 21:00"
+        },
+        {
+          "field": 0.35
+        },
+        {
+          "field": "Until: 24:00"
+        },
+        {
+          "field": 0.05
+        }
+      ]
+    },
+    "Office Plug Loads": {
+      "schedule_type_limits_name": "Fraction",
+      "data": [
+        {
+          "field": "Through: 12/31"
+        },
+        {
+          "field": "For: AllDays"
+        },
+        {
+          "field": "Until: 07:00"
+        },
+        {
+          "field": 0.25
+        },
+        {
+          "field": "Until: 08:00"
+        },
+        {
+          "field": 0.5
+        },
+        {
+          "field": "Until: 12:00"
+        },
+        {
+          "field": 1.0
+        },
+        {
+          "field": "Until: 13:00"
+        },
+        {
+          "field": 0.75
+        },
+        {
+          "field": "Until: 18:00"
+        },
+        {
+          "field": 1.0
+        },
+        {
+          "field": "Until: 21:00"
+        },
+        {
+          "field": 0.5
+        },
+        {
+          "field": "Until: 24:00"
+        },
+        {
+          "field": 0.25
+        }
+      ]
+    },
+    "Open Office Occupancy": {
+      "schedule_type_limits_name": "Fraction",
+      "data": [
+        {
+          "field": "Through: 12/31"
+        },
+        {
+          "field": "For: AllDays"
+        },
+        {
+          "field": "Until: 07:00"
+        },
+        {
+          "field": 0
+        },
+        {
+          "field": "Until: 08:00"
+        },
+        {
+          "field": 0.25
+        },
+        {
+          "field": "Until: 12:00"
+        },
+        {
+          "field": 0.9
+        },
+        {
+          "field": "Until: 13:00"
+        },
+        {
+          "field": 0.55
+        },
+        {
+          "field": "Until: 17:00"
+        },
+        {
+          "field": 0.9
+        },
+        {
+          "field": "Until: 19:00"
+        },
+        {
+          "field": 0.25
+        },
+        {
+          "field": "Until: 24:00"
+        },
+        {
+          "field": 0
+        }
+      ]
+    },
+    "Meeting Occupancy": {
+      "schedule_type_limits_name": "Fraction",
+      "data": [
+        {
+          "field": "Through: 12/31"
+        },
+        {
+          "field": "For: AllDays"
+        },
+        {
+          "field": "Until: 08:00"
+        },
+        {
+          "field": 0
+        },
+        {
+          "field": "Until: 09:00"
+        },
+        {
+          "field": 0.15
+        },
+        {
+          "field": "Until: 11:00"
+        },
+        {
+          "field": 0.85
+        },
+        {
+          "field": "Until: 13:00"
+        },
+        {
+          "field": 0.2
+        },
+        {
+          "field": "Until: 16:00"
+        },
+        {
+          "field": 0.65
+        },
+        {
+          "field": "Until: 18:00"
+        },
+        {
+          "field": 0.15
+        },
+        {
+          "field": "Until: 24:00"
+        },
+        {
+          "field": 0
+        }
+      ]
+    },
+    "Support Occupancy": {
+      "schedule_type_limits_name": "Fraction",
+      "data": [
+        {
+          "field": "Through: 12/31"
+        },
+        {
+          "field": "For: AllDays"
+        },
+        {
+          "field": "Until: 07:00"
+        },
+        {
+          "field": 0
+        },
+        {
+          "field": "Until: 09:00"
+        },
+        {
+          "field": 0.2
+        },
+        {
+          "field": "Until: 17:00"
+        },
+        {
+          "field": 0.35
+        },
+        {
+          "field": "Until: 20:00"
+        },
+        {
+          "field": 0.15
+        },
+        {
+          "field": "Until: 24:00"
+        },
+        {
+          "field": 0
+        }
+      ]
+    }
+  },
+  "People": {
+    "room_1 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_1",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_2 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_2",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_3 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_3",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_4 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_4",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_5 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_5",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_6 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_6",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_7 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_7",
+      "number_of_people_schedule_name": "Meeting Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 5.0,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_8 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_8",
+      "number_of_people_schedule_name": "Meeting Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 5.0,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_9 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_9",
+      "number_of_people_schedule_name": "Support Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 0.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_10 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_10",
+      "number_of_people_schedule_name": "Support Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 0.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_11 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_11",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_12 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_12",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_13 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_13",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_14 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_14",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_15 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_15",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    },
+    "room_16 People": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_16",
+      "number_of_people_schedule_name": "Open Office Occupancy",
+      "activity_level_schedule_name": "Office Activity",
+      "number_of_people_calculation_method": "People",
+      "number_of_people": 1.6,
+      "fraction_radiant": 0.3,
+      "sensible_heat_fraction": 0.6
+    }
+  },
+  "Lights": {
+    "room_1 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_1",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_2 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_2",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_3 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_3",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_4 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_4",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_5 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_5",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_6 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_6",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_7 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_7",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 9.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_8 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_8",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 9.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_9 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_9",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 5.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_10 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_10",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 5.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_11 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_11",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_12 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_12",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_13 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_13",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_14 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_14",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_15 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_15",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    },
+    "room_16 Lights": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_16",
+      "schedule_name": "Office Lights",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 7.0,
+      "fraction_radiant": 0.3,
+      "fraction_visible": 0.2
+    }
+  },
+  "ElectricEquipment": {
+    "room_1 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_1",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_2 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_2",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_3 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_3",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_4 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_4",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_5 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_5",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_6 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_6",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_7 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_7",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 5.0,
+      "fraction_radiant": 0.2
+    },
+    "room_8 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_8",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 5.0,
+      "fraction_radiant": 0.2
+    },
+    "room_9 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_9",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 12.0,
+      "fraction_radiant": 0.2
+    },
+    "room_10 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_10",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 12.0,
+      "fraction_radiant": 0.2
+    },
+    "room_11 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_11",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_12 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_12",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_13 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_13",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_14 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_14",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_15 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_15",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    },
+    "room_16 Plug Loads": {
+      "zone_or_zonelist_or_space_or_spacelist_name": "room_16",
+      "schedule_name": "Office Plug Loads",
+      "design_level_calculation_method": "Watts/Area",
+      "watts_per_floor_area": 8.0,
+      "fraction_radiant": 0.2
+    }
+  },
+  "ZoneControl:Thermostat": {
+    "room_1 Thermostat": {
+      "zone_or_zonelist_name": "room_1",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_2 Thermostat": {
+      "zone_or_zonelist_name": "room_2",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_3 Thermostat": {
+      "zone_or_zonelist_name": "room_3",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_4 Thermostat": {
+      "zone_or_zonelist_name": "room_4",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_5 Thermostat": {
+      "zone_or_zonelist_name": "room_5",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_6 Thermostat": {
+      "zone_or_zonelist_name": "room_6",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_7 Thermostat": {
+      "zone_or_zonelist_name": "room_7",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_8 Thermostat": {
+      "zone_or_zonelist_name": "room_8",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_9 Thermostat": {
+      "zone_or_zonelist_name": "room_9",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_10 Thermostat": {
+      "zone_or_zonelist_name": "room_10",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_11 Thermostat": {
+      "zone_or_zonelist_name": "room_11",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_12 Thermostat": {
+      "zone_or_zonelist_name": "room_12",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_13 Thermostat": {
+      "zone_or_zonelist_name": "room_13",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_14 Thermostat": {
+      "zone_or_zonelist_name": "room_14",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_15 Thermostat": {
+      "zone_or_zonelist_name": "room_15",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    },
+    "room_16 Thermostat": {
+      "zone_or_zonelist_name": "room_16",
+      "control_type_schedule_name": "Control Type",
+      "control_1_object_type": "ThermostatSetpoint:DualSetpoint",
+      "control_1_name": "Zone Setpoints"
+    }
+  },
+  "ZoneHVAC:EquipmentConnections": {
+    "room_1 Connections": {
+      "zone_name": "room_1",
+      "zone_conditioning_equipment_list_name": "room_1 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_1 Supply",
+      "zone_air_node_name": "room_1 Air",
+      "zone_return_air_node_or_nodelist_name": "room_1 Return"
+    },
+    "room_2 Connections": {
+      "zone_name": "room_2",
+      "zone_conditioning_equipment_list_name": "room_2 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_2 Supply",
+      "zone_air_node_name": "room_2 Air",
+      "zone_return_air_node_or_nodelist_name": "room_2 Return"
+    },
+    "room_3 Connections": {
+      "zone_name": "room_3",
+      "zone_conditioning_equipment_list_name": "room_3 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_3 Supply",
+      "zone_air_node_name": "room_3 Air",
+      "zone_return_air_node_or_nodelist_name": "room_3 Return"
+    },
+    "room_4 Connections": {
+      "zone_name": "room_4",
+      "zone_conditioning_equipment_list_name": "room_4 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_4 Supply",
+      "zone_air_node_name": "room_4 Air",
+      "zone_return_air_node_or_nodelist_name": "room_4 Return"
+    },
+    "room_5 Connections": {
+      "zone_name": "room_5",
+      "zone_conditioning_equipment_list_name": "room_5 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_5 Supply",
+      "zone_air_node_name": "room_5 Air",
+      "zone_return_air_node_or_nodelist_name": "room_5 Return"
+    },
+    "room_6 Connections": {
+      "zone_name": "room_6",
+      "zone_conditioning_equipment_list_name": "room_6 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_6 Supply",
+      "zone_air_node_name": "room_6 Air",
+      "zone_return_air_node_or_nodelist_name": "room_6 Return"
+    },
+    "room_7 Connections": {
+      "zone_name": "room_7",
+      "zone_conditioning_equipment_list_name": "room_7 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_7 Supply",
+      "zone_air_node_name": "room_7 Air",
+      "zone_return_air_node_or_nodelist_name": "room_7 Return"
+    },
+    "room_8 Connections": {
+      "zone_name": "room_8",
+      "zone_conditioning_equipment_list_name": "room_8 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_8 Supply",
+      "zone_air_node_name": "room_8 Air",
+      "zone_return_air_node_or_nodelist_name": "room_8 Return"
+    },
+    "room_9 Connections": {
+      "zone_name": "room_9",
+      "zone_conditioning_equipment_list_name": "room_9 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_9 Supply",
+      "zone_air_node_name": "room_9 Air",
+      "zone_return_air_node_or_nodelist_name": "room_9 Return"
+    },
+    "room_10 Connections": {
+      "zone_name": "room_10",
+      "zone_conditioning_equipment_list_name": "room_10 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_10 Supply",
+      "zone_air_node_name": "room_10 Air",
+      "zone_return_air_node_or_nodelist_name": "room_10 Return"
+    },
+    "room_11 Connections": {
+      "zone_name": "room_11",
+      "zone_conditioning_equipment_list_name": "room_11 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_11 Supply",
+      "zone_air_node_name": "room_11 Air",
+      "zone_return_air_node_or_nodelist_name": "room_11 Return"
+    },
+    "room_12 Connections": {
+      "zone_name": "room_12",
+      "zone_conditioning_equipment_list_name": "room_12 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_12 Supply",
+      "zone_air_node_name": "room_12 Air",
+      "zone_return_air_node_or_nodelist_name": "room_12 Return"
+    },
+    "room_13 Connections": {
+      "zone_name": "room_13",
+      "zone_conditioning_equipment_list_name": "room_13 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_13 Supply",
+      "zone_air_node_name": "room_13 Air",
+      "zone_return_air_node_or_nodelist_name": "room_13 Return"
+    },
+    "room_14 Connections": {
+      "zone_name": "room_14",
+      "zone_conditioning_equipment_list_name": "room_14 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_14 Supply",
+      "zone_air_node_name": "room_14 Air",
+      "zone_return_air_node_or_nodelist_name": "room_14 Return"
+    },
+    "room_15 Connections": {
+      "zone_name": "room_15",
+      "zone_conditioning_equipment_list_name": "room_15 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_15 Supply",
+      "zone_air_node_name": "room_15 Air",
+      "zone_return_air_node_or_nodelist_name": "room_15 Return"
+    },
+    "room_16 Connections": {
+      "zone_name": "room_16",
+      "zone_conditioning_equipment_list_name": "room_16 Equipment",
+      "zone_air_inlet_node_or_nodelist_name": "room_16 Supply",
+      "zone_air_node_name": "room_16 Air",
+      "zone_return_air_node_or_nodelist_name": "room_16 Return"
+    }
+  },
+  "ZoneHVAC:EquipmentList": {
+    "room_1 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_1 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_2 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_2 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_3 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_3 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_4 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_4 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_5 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_5 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_6 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_6 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_7 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_7 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_8 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_8 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_9 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_9 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_10 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_10 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_11 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_11 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_12 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_12 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_13 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_13 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_14 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_14 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_15 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_15 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    },
+    "room_16 Equipment": {
+      "load_distribution_scheme": "SequentialLoad",
+      "equipment": [
+        {
+          "zone_equipment_object_type": "ZoneHVAC:AirDistributionUnit",
+          "zone_equipment_name": "room_16 ADU",
+          "zone_equipment_cooling_sequence": 1,
+          "zone_equipment_heating_or_no_load_sequence": 1
+        }
+      ]
+    }
+  },
+  "ZoneHVAC:AirDistributionUnit": {
+    "room_1 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_1 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_1 VAV"
+    },
+    "room_2 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_2 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_2 VAV"
+    },
+    "room_3 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_3 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_3 VAV"
+    },
+    "room_4 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_4 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_4 VAV"
+    },
+    "room_5 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_5 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_5 VAV"
+    },
+    "room_6 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_6 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_6 VAV"
+    },
+    "room_7 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_7 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_7 VAV"
+    },
+    "room_8 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_8 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_8 VAV"
+    },
+    "room_9 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_9 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_9 VAV"
+    },
+    "room_10 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_10 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_10 VAV"
+    },
+    "room_11 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_11 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_11 VAV"
+    },
+    "room_12 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_12 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_12 VAV"
+    },
+    "room_13 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_13 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_13 VAV"
+    },
+    "room_14 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_14 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_14 VAV"
+    },
+    "room_15 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_15 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_15 VAV"
+    },
+    "room_16 ADU": {
+      "air_distribution_unit_outlet_node_name": "room_16 Supply",
+      "air_terminal_object_type": "AirTerminal:SingleDuct:VAV:Reheat",
+      "air_terminal_name": "room_16 VAV"
+    }
+  },
+  "AirTerminal:SingleDuct:VAV:Reheat": {
+    "room_1 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_1 Reheat In",
+      "air_inlet_node_name": "room_1 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_1 Reheat",
+      "air_outlet_node_name": "room_1 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_2 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_2 Reheat In",
+      "air_inlet_node_name": "room_2 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_2 Reheat",
+      "air_outlet_node_name": "room_2 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_3 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_3 Reheat In",
+      "air_inlet_node_name": "room_3 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_3 Reheat",
+      "air_outlet_node_name": "room_3 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_4 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_4 Reheat In",
+      "air_inlet_node_name": "room_4 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_4 Reheat",
+      "air_outlet_node_name": "room_4 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_5 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_5 Reheat In",
+      "air_inlet_node_name": "room_5 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_5 Reheat",
+      "air_outlet_node_name": "room_5 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_6 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_6 Reheat In",
+      "air_inlet_node_name": "room_6 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_6 Reheat",
+      "air_outlet_node_name": "room_6 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_7 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_7 Reheat In",
+      "air_inlet_node_name": "room_7 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_7 Reheat",
+      "air_outlet_node_name": "room_7 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_8 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_8 Reheat In",
+      "air_inlet_node_name": "room_8 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_8 Reheat",
+      "air_outlet_node_name": "room_8 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_9 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_9 Reheat In",
+      "air_inlet_node_name": "room_9 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_9 Reheat",
+      "air_outlet_node_name": "room_9 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_10 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_10 Reheat In",
+      "air_inlet_node_name": "room_10 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_10 Reheat",
+      "air_outlet_node_name": "room_10 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_11 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_11 Reheat In",
+      "air_inlet_node_name": "room_11 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_11 Reheat",
+      "air_outlet_node_name": "room_11 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_12 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_12 Reheat In",
+      "air_inlet_node_name": "room_12 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_12 Reheat",
+      "air_outlet_node_name": "room_12 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_13 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_13 Reheat In",
+      "air_inlet_node_name": "room_13 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_13 Reheat",
+      "air_outlet_node_name": "room_13 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_14 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_14 Reheat In",
+      "air_inlet_node_name": "room_14 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_14 Reheat",
+      "air_outlet_node_name": "room_14 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_15 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_15 Reheat In",
+      "air_inlet_node_name": "room_15 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_15 Reheat",
+      "air_outlet_node_name": "room_15 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    },
+    "room_16 VAV": {
+      "availability_schedule_name": "On",
+      "damper_air_outlet_node_name": "room_16 Reheat In",
+      "air_inlet_node_name": "room_16 Box In",
+      "maximum_air_flow_rate": 0.1,
+      "zone_minimum_air_flow_input_method": "Constant",
+      "constant_minimum_air_flow_fraction": 0.5,
+      "reheat_coil_object_type": "Coil:Heating:Electric",
+      "reheat_coil_name": "room_16 Reheat",
+      "air_outlet_node_name": "room_16 Supply",
+      "damper_heating_action": "Reverse",
+      "maximum_reheat_air_temperature": 45.0
+    }
+  },
+  "Coil:Heating:Electric": {
+    "room_1 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_1 Reheat In",
+      "air_outlet_node_name": "room_1 Supply"
+    },
+    "room_2 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_2 Reheat In",
+      "air_outlet_node_name": "room_2 Supply"
+    },
+    "room_3 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_3 Reheat In",
+      "air_outlet_node_name": "room_3 Supply"
+    },
+    "room_4 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_4 Reheat In",
+      "air_outlet_node_name": "room_4 Supply"
+    },
+    "room_5 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_5 Reheat In",
+      "air_outlet_node_name": "room_5 Supply"
+    },
+    "room_6 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_6 Reheat In",
+      "air_outlet_node_name": "room_6 Supply"
+    },
+    "room_7 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_7 Reheat In",
+      "air_outlet_node_name": "room_7 Supply"
+    },
+    "room_8 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_8 Reheat In",
+      "air_outlet_node_name": "room_8 Supply"
+    },
+    "room_9 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_9 Reheat In",
+      "air_outlet_node_name": "room_9 Supply"
+    },
+    "room_10 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_10 Reheat In",
+      "air_outlet_node_name": "room_10 Supply"
+    },
+    "room_11 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_11 Reheat In",
+      "air_outlet_node_name": "room_11 Supply"
+    },
+    "room_12 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_12 Reheat In",
+      "air_outlet_node_name": "room_12 Supply"
+    },
+    "room_13 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_13 Reheat In",
+      "air_outlet_node_name": "room_13 Supply"
+    },
+    "room_14 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_14 Reheat In",
+      "air_outlet_node_name": "room_14 Supply"
+    },
+    "room_15 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_15 Reheat In",
+      "air_outlet_node_name": "room_15 Supply"
+    },
+    "room_16 Reheat": {
+      "availability_schedule_name": "On",
+      "efficiency": 1.0,
+      "nominal_capacity": 4000.0,
+      "air_inlet_node_name": "room_16 Reheat In",
+      "air_outlet_node_name": "room_16 Supply"
+    }
+  },
+  "OutputControl:Files": {
+    "Smoke Output": {
+      "output_csv": "Yes"
+    }
+  },
+  "Output:Variable": {
+    "Smoke Output 1": {
+      "key_value": "*",
+      "variable_name": "Zone Mean Air Temperature",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 2": {
+      "key_value": "*",
+      "variable_name": "Zone Air Terminal VAV Damper Position",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 3": {
+      "key_value": "*",
+      "variable_name": "Heating Coil Heating Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 4": {
+      "key_value": "Central DX Coil",
+      "variable_name": "Cooling Coil Total Cooling Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 5": {
+      "key_value": "room_1 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 6": {
+      "key_value": "room_2 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 7": {
+      "key_value": "room_3 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 8": {
+      "key_value": "room_4 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 9": {
+      "key_value": "room_5 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 10": {
+      "key_value": "room_6 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 11": {
+      "key_value": "room_7 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 12": {
+      "key_value": "room_8 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 13": {
+      "key_value": "room_9 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 14": {
+      "key_value": "room_10 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 15": {
+      "key_value": "room_11 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 16": {
+      "key_value": "room_12 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 17": {
+      "key_value": "room_13 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 18": {
+      "key_value": "room_14 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 19": {
+      "key_value": "room_15 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 20": {
+      "key_value": "room_16 Supply",
+      "variable_name": "System Node Standard Density Volume Flow Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 21": {
+      "key_value": "Central VAV",
+      "variable_name": "Air System Outdoor Air Flow Fraction",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 22": {
+      "key_value": "*",
+      "variable_name": "Zone People Sensible Heating Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 23": {
+      "key_value": "*",
+      "variable_name": "Zone Lights Total Heating Rate",
+      "reporting_frequency": "Timestep"
+    },
+    "Smoke Output 24": {
+      "key_value": "*",
+      "variable_name": "Zone Electric Equipment Total Heating Rate",
+      "reporting_frequency": "Timestep"
+    }
+  }
+}
