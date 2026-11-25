@@ -23,9 +23,9 @@ import traceback
 import numpy as np
 import pandas as pd
 
-from benchmarks.eplus_rl_speed.matched_vav import generate
-from benchmarks.eplus_rl_speed.matched_vav import sbsim_model
-from benchmarks.eplus_rl_speed.matched_vav import settings
+from .matched_vav import generate
+from .matched_vav import sbsim_model
+from .matched_vav import settings
 from . import eplus_env
 from . import physics
 from smart_control.simulator.grouped_jax_simulator import GroupedJaxSimulator
@@ -45,9 +45,11 @@ class _OfficeSimulator(sbsim_model._OfficeForcing, GroupedJaxSimulator):
   """Use the office heat schedule with the public thermal solver."""
 
 
-def _solver_options(args, variant):
+def _solver_options(args, variant, *, linearized_radiative_heat_transfer=None):
   grouped = variant == 'grouped_jax'
   linearized = variant != 'full_jax'
+  if linearized_radiative_heat_transfer is not None:
+    linearized = linearized_radiative_heat_transfer
   method = (
       args.grouped_method
       if grouped
@@ -69,7 +71,8 @@ def _solver_options(args, variant):
 class _SbsimOffice:
   """One native SBSim HVAC instance with independently actuated zones."""
 
-  def __init__(self, plan, weather, args, variant):
+  def __init__(self, plan, weather, args, variant,
+               *, linearized_radiative_heat_transfer=None):
     self.num_envs = 1
     self.episode_steps = args.days * _DAY_STEPS
     self.names = [room.name for room in plan.rooms]
@@ -90,7 +93,10 @@ class _SbsimOffice:
         iteration_limit=100,
         iteration_warning=100,
         relative_convergence_threshold=None,
-        **_solver_options(args, variant),
+        **_solver_options(
+            args, variant,
+            linearized_radiative_heat_transfer=linearized_radiative_heat_transfer
+        ),
     )
     start = perf_counter()
     self.sim.prepare_thermal_system(

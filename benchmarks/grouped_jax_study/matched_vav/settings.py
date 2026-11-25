@@ -1,0 +1,16 @@
+"""Shared design values for the matched model pair (SI units)."""
+
+STEPS_PER_HOUR = 12
+STEP_SECONDS = 3600 // STEPS_PER_HOUR
+HEATING_SETPOINT_C = 21.0
+COOLING_SETPOINT_C = 24.0
+SUPPLY_AIR_C = 16.0
+FLOW_PER_M2 = 0.005
+FAN_PRESSURE_PA = 600.0
+FAN_EFFICIENCY = 0.7
+# Conductivity [W/(m K)], specific heat [J/(kg K)], density [kg/m³].
+WALL_CONDUCTIVITY = 0.5
+WALL_SPECIFIC_HEAT = 800.0
+WALL_DENSITY = 1800.0
+WINDOW_HEIGHT_FRACTION = 0.6
+WINDOW_SHGC = 0.55

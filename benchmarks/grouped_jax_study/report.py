@@ -95,6 +95,63 @@ def sac(root, rows):
   _by_zone(root, 'sac.png', rows, 'elapsed_s', 'SAC wall time [s]')
 
 
+def _physics_plot(traces, times, names, room):
+  """Compare two zone-average temperatures and their across-zone mean error."""
+  ink = '#25344a'
+  colors = {'full_jax': '#2a78d6', 'grouped_jax': '#eb6834'}
+  fig, (top, bottom) = plt.subplots(
+      2, 1, figsize=(10.5, 6.3), sharex=True, layout='constrained'
+  )
+  for variant in ('full_jax', 'grouped_jax'):
+    top.plot(
+        times,
+        traces[variant][:, room],
+        label=_LABELS[variant],
+        color=colors[variant],
+        lw=2.0,
+    )
+  top.set_title(f'Zone-average temperature in {names[room]}')
+  top.set_ylabel('Zone-average temperature [°C]')
+  top.legend(frameon=False, loc='upper left', ncol=2, labelcolor=ink)
+  top.margins(y=0.2)
+  if len(times) > 1:
+    top.set_xlim(times[0], times[-1] + 0.08 * (times[-1] - times[0]))
+  for index, variant in enumerate(('full_jax', 'grouped_jax')):
+    top.annotate(
+        _LABELS[variant],
+        xy=(times[-1], traces[variant][-1, room]),
+        xytext=(6, 8 if index == 0 else -8),
+        textcoords='offset points',
+        va='bottom' if index == 0 else 'top',
+        fontsize=9,
+        color=ink,
+    )
+  mean_absolute = np.abs(traces['grouped_jax'] - traces['full_jax']).mean(axis=1)
+  bottom.plot(
+      times,
+      mean_absolute,
+      label='Grouped JAX MAE',
+      color=colors['grouped_jax'],
+      lw=2.0,
+  )
+  bottom.set_title(
+      f'Grouped JAX − Full JAX: mean absolute difference over {len(names)} zones',
+      loc='left',
+      fontsize=10,
+  )
+  bottom.set_ylabel('Mean absolute difference [K]')
+  bottom.set_xlabel('Local standard time (interval end)')
+  bottom.set_ylim(bottom=0)
+  locator = mdates.AutoDateLocator(tz=times.tz, minticks=5, maxticks=9)
+  bottom.xaxis.set_major_locator(locator)
+  bottom.xaxis.set_major_formatter(
+      mdates.ConciseDateFormatter(locator, tz=times.tz)
+  )
+  for ax in (top, bottom):
+    _style(ax)
+  return fig
+
+
 def temperature(root, traces, metrics, times, names, forcing):
   full = traces['full_jax']
   linear_bias = traces['full_linear'] - full
@@ -157,45 +214,8 @@ def temperature(root, traces, metrics, times, names, forcing):
   _csv(root / 'physics_errors.csv', comparisons)
 
   room = int(np.abs(grouped_bias).mean(axis=0).argmax())
-  fig, (top, bottom) = plt.subplots(
-      2, 1, figsize=(10.5, 6.3), sharex=True, layout='constrained'
-  )
-  for variant, values in traces.items():
-    top.plot(
-        times,
-        values[:, room],
-        label=_LABELS[variant],
-        color=_COLORS[variant],
-        lw=1.5,
-        linestyle='--' if variant == 'full_linear' else '-',
-        alpha=0.9,
-    )
-  top.set_title(f'Zone temperature in {names[room]}')
-  top.set_ylabel('Temperature [°C]')
-  top.legend(frameon=False, loc='upper left', ncol=3)
-  for variant, delta in (
-      ('full_linear', linear_bias),
-      ('grouped_jax', grouped_bias),
-  ):
-    absolute = np.abs(delta)
-    bottom.plot(
-        times,
-        np.percentile(absolute, 95, axis=1),
-        label=_LABELS[variant],
-        color=_COLORS[variant],
-        lw=1.5,
-    )
-  bottom.set_ylabel('95th percentile absolute\nzone error [K]')
-  bottom.set_xlabel('Local standard time')
-  locator = mdates.AutoDateLocator(tz=times.tz, minticks=5, maxticks=9)
-  bottom.xaxis.set_major_locator(locator)
-  bottom.xaxis.set_major_formatter(
-      mdates.ConciseDateFormatter(locator, tz=times.tz)
-  )
-  bottom.legend(frameon=False, ncol=2)
-  for ax in (top, bottom):
-    _style(ax)
-  fig.savefig(root / 'physics.png', dpi=160)
+  fig = _physics_plot(traces, times, names, room)
+  fig.savefig(root / 'physics.png', dpi=160, facecolor='white')
   plt.close(fig)
   return dict(
       zones=len(names),
@@ -290,8 +310,20 @@ _REPORT_TEXT = {
             'recording; timing for the two linear models includes fixed-heat '
             'replay and zone-temperature reads.'
         ),
+        'physics_plot_note': (
+            'The top panel directly overlays Full JAX and Grouped JAX in one '
+            'representative zone, selected by its largest time-average '
+            'absolute error. Every temperature is a model-computed zone '
+            'average in °C, not an individual cell temperature. The bottom '
+            'panel shows the mean absolute Full/Grouped difference over all '
+            'zones at each time in K. No quantile curve is plotted.'
+        ),
         'physics_alt': (
             'Representative-zone temperature and temperature error over time'
+        ),
+        'physics_alt': (
+            'Representative-zone average temperature and zone-average error '
+            'over time'
         ),
         'physics_artifacts': (
             'Five-minute temperature time series: `physics.csv`; error '
@@ -378,7 +410,15 @@ _REPORT_TEXT = {
             '전체 비선형 기준 시간에는 HVAC 피드백과 열량 기록이, 두 선형 '
             '모델의 시간에는 고정 열량 재생과 존 온도 읽기가 들어간다.'
         ),
-        'physics_alt': '대표 존의 온도와 시간별 온도 오차',
+        'physics_plot_note': (
+            '위 패널은 시간평균 절대오차가 가장 큰 대표 존에서 Full JAX와 '
+            'Grouped JAX의 존 평균온도 [°C]를 직접 겹쳐 보여준다. 이번 '
+            '비교에는 Full linear 곡선을 추가하지 않는다. 온도는 각 모델이 '
+            '계산한 존 평균이며 개별 유한체적 셀이 아니다. 아래 패널은 모든 '
+            '존의 두 온도 곡선 차이를 절댓값으로 평균한 값 [K]이다. 백분위수 '
+            '곡선은 표시하지 않는다.'
+        ),
+        'physics_alt': '대표 존의 온도와 시간별 존 평균온도 오차',
         'physics_artifacts': (
             '5분 온도 시계열 `physics.csv`, 오차 통계 `physics_errors.csv`, '
             '온도와 HVAC 열 `physics.npz`'
@@ -531,6 +571,8 @@ def _markdown_lines(summary, language):
     lines.extend([
         '',
         f"![{text['physics_alt']}](physics.png)",
+        '',
+        text['physics_plot_note'],
         '',
         text['physics_artifacts'],
         '',

@@ -15,8 +15,8 @@ import traceback
 
 import numpy as np
 
-from benchmarks.eplus_rl_speed.matched_vav import generate
-from benchmarks.eplus_rl_speed.matched_vav import settings
+from .matched_vav import generate
+from .matched_vav import settings
 
 
 _WORKER_MODULE = 'benchmarks.grouped_jax_study.eplus_env'
@@ -233,8 +233,8 @@ class EnergyPlusOffice:
 
 
 def _make_backend(model_path, epw, energyplus_dir, output, run_day, days):
-  from benchmarks.eplus_rl_speed.matched_vav import energyplus_zone_control
-  from benchmarks.eplus_rl_speed.matched_vav import rl_env
+  from .matched_vav import energyplus_zone_control
+  from .matched_vav import rl_env
 
   model = json.loads(model_path.read_text(encoding='utf-8'))
   # Keep actuators aligned with the floorplan's numeric room order.

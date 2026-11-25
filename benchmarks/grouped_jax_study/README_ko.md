@@ -7,9 +7,41 @@
 차이를 비교할 수 있다.
 
 이 폴더에서는 [`run.py`](run.py)가 실행·측정하고 [`report.py`](report.py)가 표·CSV·그림을 만든다.
-`results/`는 이 API로 생성한 원자료와 보고서다. 공통 사무실 평면·기상 입력은 상위 벤치마크의 재사용 모듈을,
-EnergyPlus·SAC 어댑터는 [`eplus_env.py`](eplus_env.py), [`physics.py`](physics.py),
+`results/`는 이 API로 생성한 원자료와 보고서다. 공통 사무실 평면·기상 모델 생성기도 이 폴더의
+[`matched_vav/`](matched_vav/)에 복사해 두었으며, EnergyPlus·SAC 어댑터는 로컬
+[`eplus_env.py`](eplus_env.py), [`physics.py`](physics.py),
 [`train.py`](train.py), [`sac.py`](sac.py)를 사용한다.
+
+## 독립 실행 구조
+
+**이 벤치마크는 `benchmarks/eplus_rl_speed`와 `benchmarks/sbsim_sac_study` 없이 실행할 수
+있다.** 원본 두 폴더는 삭제하지 않았고, 필요한 실행 모듈·모델 입력·trainer 코드만 복사했다. 독립성은
+`test_standalone.py`가 소스상 외부 경로 참조, 기본 모델 입력 위치와 import 차단 조건을 함께 검사한다. 또한 두 기본
+100존 모델의 manifest와 geometry/NPY 입력을 실제 loader로 읽고, 저장한 `model.epJSON`이 로컬
+generator의 출력과 정확히 일치하는지도 비교한다. 이 회귀 테스트는 EnergyPlus subprocess를 실행하지 않는다.
+
+```text
+grouped_jax_study/
+├── matched_vav/             # 사무실 평면·SBSim·EnergyPlus 생성 및 실행 모듈
+│   ├── models/zone05/       # 이전한 focused test 입력
+│   ├── models/zone16/
+│   ├── models/zone36/
+│   ├── models/zone100/
+│   ├── models/zone100_office/            # train.py의 기본 SBSim 입력
+│   └── models/zone100_detailed_office/   # EnergyPlus 상세 입력
+├── run.py / report.py       # 전체 benchmark와 보고서 생성
+├── physics.py / eplus_env.py
+├── train.py / sac.py / sac_probe.py
+├── interior_mass.py / jax_env.py  # 이전 batched trainer에 필요한 로컬 모듈
+├── figures/                 # 영·한 공통 설명 그림
+└── results/                 # 기존 측정 결과. 새 실행은 새 하위 경로 사용
+```
+
+여기서 독립한다는 의미는 두 sibling benchmark에 대한 import·경로 의존성 제거다. 핵심 열수지 구현은 계속
+`smart_control.simulator.grouped_heat_balance`와 `grouped_jax_simulator`를 사용하며,
+프로젝트 Python 의존성이 필요하다. EnergyPlus까지 실행하면 외부 EnergyPlus 24.2의 `pyenergyplus`와 EPW
+파일이 별도로 필요하다. `run.py`는 생성된 모델을 새 출력 폴더 아래 저장하고, `train.py`의 기본 모델 검색 위치는 위 로컬
+`matched_vav/models/`다.
 
 ## 기존 SBSim 모델에서 사용
 
@@ -87,12 +119,12 @@ Building과 HVAC를 솔버별로 생성한다. `solver_method`는 각 솔버가 
 `A₀ + sR`의 희소 열수지 하나로 공기·벽·창·질량을 함께 푼다. `s = 4 × 295.65³`은 고정 기울기다. 직전 온도 및 기상,
 단파와 HVAC 열량을 우변에 넣는다.
 
-| 풀이        | CPU              | GPU      | 처리                                                                      |
-| ----------- | ---------------- | -------- | ------------------------------------------------------------------------- |
-| `sparse_lu` | SciPy            |          | 희소 LU를 재사용한다. 선형이면 스텝당 한 번 직접 푼다.                    |
-| `cg`        | JAX              | JAX      | 희소 켤레기울기다. 선형이면 장파 외부 반복 없이 내부 CG 반복을 수행한다.  |
-| `dense`     | JAX              | JAX      | 호스트에서 희소 LU로 밀집 응답을 준비한 뒤 장치에서 행렬 곱으로 적용한다. |
-| `spsolve`   | JAX의 SciPy 경로 | JAX CUDA | 희소 직접 풀이다. CUDA는 희소 QR을 사용한다.                              |
+| 풀이        | CPU            | GPU      | 처리                                                                            |
+| ----------- | -------------- | -------- | ------------------------------------------------------------------------------- |
+| `sparse_lu` | SciPy          |          | 희소 LU를 재사용한다. 선형 모델은 스텝마다 한 번 직접 푼다.                     |
+| `cg`        | JAX            | JAX      | 희소 켤레기울기법이다. 선형 모델은 장파 외부 반복 없이 내부 CG 반복을 수행한다. |
+| `dense`     | JAX            | JAX      | 호스트 희소 LU로 밀집 응답을 준비한 뒤 장치에서 행렬 곱으로 적용한다.           |
+| `spsolve`   | JAX 경유 SciPy | JAX CUDA | 희소 직접 풀이. CUDA는 희소 QR을 사용한다.                                      |
 
 GPU 실행은 JAX가 지원 장치를 인식하는 환경에서 `platform='gpu'`와 JAX 풀이를 지정한다. 단일 모델의
 `GroupedJaxSimulator`는 기존 호스트의 VAV를 실행하고 스텝 뒤 결과를 호스트의 Building 격자에 기록한다. SAC와
@@ -102,6 +134,11 @@ GPU 실행은 JAX가 지원 장치를 인식하는 환경에서 `platform='gpu'`
 [`benchmarks/grouped_jax_study/HEAT_BALANCE_EQUATIONS_ko.md`](HEAT_BALANCE_EQUATIONS_ko.md),
 기존 평면의 그룹 지도 및 과거 SAC 결과는
 [`benchmarks/grouped_jax_study/LUMPED_MODEL_ko.md`](LUMPED_MODEL_ko.md)에 있다.
+공간·시간별 오차 꼬리, 축소 상태의 의미, 동일 sparse-LU 선형·비선형 보조 실험과 고정 HVAC 물리 재생·독립 폐루프
+rollout의 구분은 상세 [full–grouped 분석](GROUPED_FULL_ANALYSIS_ko.md)과 그
+[CSV/JSON/PNG 산출물](results/grouped_full_analysis/analysis_summary.json)에 있다. 저장된
+100존 사례에서 grouped 복사를 비선형으로 바꿔도 0.102 K 수준의 차이는 거의 그대로 남았으며, 공기·외피·질량 각각의 기여율은
+아직 분리하지 않았다.
 
 ## 작은 합성 평면에서 실행
 
@@ -127,8 +164,7 @@ CPU와 GPU 명령을 실행할 터미널에서 설치 경로를 먼저 설정한
 보고서와 동일한 EPW를 포함한다. 다른 머신에서는 설치 경로와 EPW 경로를 해당 환경에 맞게 지정한다.
 
 ```bash
-EPLUS_DIR="$HOME/.local/share/sbsim/energyplus-24.2"
-EPW="$EPLUS_DIR/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
+EPLUS_DIR="$HOME/.local/share/sbsim/energyplus-24.2" EPW="$EPLUS_DIR/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
 test -r "$EPW" && test -r "$EPLUS_DIR/pyenergyplus/api.py"
 ```
 
@@ -210,6 +246,14 @@ SAC 결과의 학습 장치가 다르면 새 `--output`을 지정해 두 측정�
 | `sac.csv`, `sac.png`                | 전이·업데이트 수, 환경과 학습 단계별 시간 및 전체 실행 시간                        |
 | `sac/<존 수>-<엔진>/actor.npz`      | 각 SAC 실행의 정책 신경망 가중치                                                   |
 
+`physics`에서 $e_{t,z}=|T_{\mathrm{candidate},t,z}-T_{\mathrm{base},t,z}|$라고 하자.
+여기서 `base`는 전체 비선형 모델이다. 각 $T_{t,z}$는 개별 유한체적 셀이 아니라 **존 평균온도**다. `physics.png`
+위 패널은 시간평균 절대오차가 가장 큰 대표 존에서 **Full JAX와 Grouped JAX의 존 평균온도 [°C] 두 곡선을 직접 겹쳐**
+보여준다. 아래 패널은 모든 존에 대한 두 모델의 평균 절대온도차 $\mathrm{MAE}(t)=\frac{1}{Z}\sum_z e_{t,z}$
+[K]를 보여준다. 그림에는 백분위수 곡선을 그리지 않는다. 표의 MAE·RMSE·p95·최대는 별도 통계로, 전체 time×zone 샘플을 한
+번에 집계한 값이다. CSV·NPZ의 온도 단위와 존 순서는 기존과 같다. Full linear는 이 직접 온도 비교 그림에 추가하지 않으며,
+해당 선형화 영향은 저장된 별도 수치 통계로 판단한다.
+
 SBSim의 `setup_s`에는 미리 호출한 `prepare_thermal_system()`이 포함되며, `thermal_prepare_s`는
 그 일부를 따로 잰 값이다. EnergyPlus의 초기화와 기상 워밍업은 리셋에 들어간다. EnergyPlus는 CPU의 네이티브 공조와
 열수지를 실행하므로 `--platform gpu`를 선택해도 해당 엔진의 계산 장치는 CPU다. 이때 플랫폼 선택은 JAX 솔버와 SAC 학습에
@@ -224,7 +268,7 @@ SBSim의 `setup_s`에는 미리 호출한 `prepare_thermal_system()`이 포함�
 unset JAX_PLATFORMS
 JAX_GPU_PYTHON="${JAX_GPU_PYTHON:-$PWD/.venv/jax_cuda/bin/python}"
 "$JAX_GPU_PYTHON" -c 'import jax; print(jax.devices("gpu"))' && \
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 "$JAX_GPU_PYTHON" \
+  OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 "$JAX_GPU_PYTHON" \
   -m benchmarks.grouped_jax_study.run \
   --epw "$EPW" --energyplus-dir "$EPLUS_DIR" \
   --zones 16 36 100 --physics-zones 100 --days 7 --platform gpu \

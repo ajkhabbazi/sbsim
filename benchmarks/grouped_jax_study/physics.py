@@ -14,10 +14,10 @@ import numpy as np
 import pandas as pd
 import scipy
 
-from benchmarks.eplus_rl_speed.matched_vav import coupled_radiation
-from benchmarks.eplus_rl_speed.matched_vav import generate
-from benchmarks.eplus_rl_speed.matched_vav import sbsim_model
-from benchmarks.eplus_rl_speed.matched_vav import settings
+from .matched_vav import coupled_radiation
+from .matched_vav import generate
+from .matched_vav import sbsim_model
+from .matched_vav import settings
 from smart_control.simulator import constants
 
 DAY_STEPS = 24 * settings.STEPS_PER_HOUR
@@ -32,8 +32,8 @@ VARIANTS = {
     CONDENSED: (True, False, True),
 }
 DEFAULT_MODEL = (
-    Path(__file__).resolve().parents[1] / 'eplus_rl_speed' / 'matched_vav'
-    / 'models' / 'zone100_office'
+    Path(__file__).resolve().parent / 'matched_vav' / 'models'
+    / 'zone100_office'
 )
 
 

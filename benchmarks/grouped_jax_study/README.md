@@ -11,10 +11,48 @@ differences.
 
 In this directory, [`run.py`](run.py) runs the measurements and
 [`report.py`](report.py) creates tables, CSV files, and figures. `results/`
-contains raw data and reports generated through this API. Shared office
-floor-plan and weather inputs use the parent benchmark's reusable modules, while
-the EnergyPlus and SAC adapters use the local [`eplus_env.py`](eplus_env.py),
-[`physics.py`](physics.py), [`train.py`](train.py), and [`sac.py`](sac.py).
+contains raw data and reports generated through this API. The office floor-plan,
+SBSim, and EnergyPlus model builders are also copied into the local
+[`matched_vav/`](matched_vav/) package. The EnergyPlus and SAC adapters use the
+local [`eplus_env.py`](eplus_env.py), [`physics.py`](physics.py),
+[`train.py`](train.py), and [`sac.py`](sac.py).
+
+## Standalone Study Layout
+
+**This benchmark runs without `benchmarks/eplus_rl_speed` or
+`benchmarks/sbsim_sac_study`.** Both originals remain in place; only the
+required runtime modules, model inputs, and trainer code were copied here.
+`test_standalone.py` checks source references to those paths, the location and
+presence of default model inputs, and imports while those packages are blocked.
+It also loads both default 100-zone manifests, geometry/NPY inputs, and run
+date, and verifies that the stored `model.epJSON` exactly matches the local
+generator's output. This regression test does not launch an EnergyPlus
+subprocess.
+
+```text
+grouped_jax_study/
+├── matched_vav/             # Office, SBSim, and EnergyPlus model/runtime modules
+│   ├── models/zone05/       # Input for migrated focused tests
+│   ├── models/zone16/
+│   ├── models/zone36/
+│   ├── models/zone100/
+│   ├── models/zone100_office/            # Default SBSim input for train.py
+│   └── models/zone100_detailed_office/   # Detailed EnergyPlus input
+├── run.py / report.py       # Full benchmark and report generation
+├── physics.py / eplus_env.py
+├── train.py / sac.py / sac_probe.py
+├── interior_mass.py / jax_env.py  # Local modules for the migrated batched trainer
+├── figures/                 # Shared English/Korean guide figures
+└── results/                 # Existing measurements; use a new subdirectory for new runs
+```
+
+Standalone here means no import or path dependency on the two sibling studies.
+The heat-balance implementation remains in
+`smart_control.simulator.grouped_heat_balance` and `grouped_jax_simulator`, and
+the project's Python dependencies are still required. Running EnergyPlus also
+requires an external EnergyPlus 24.2 installation with `pyenergyplus` and an EPW
+weather file. `run.py` stores generated models under the new output directory;
+`train.py` searches the local `matched_vav/models/` directory by default.
 
 ## Using with Existing SBSim Models
 
@@ -132,7 +170,15 @@ separate implementation.
 For matrix derivations and examples, see
 [`benchmarks/grouped_jax_study/HEAT_BALANCE_EQUATIONS.md`](HEAT_BALANCE_EQUATIONS.md).
 For group maps of the original floor plan and earlier SAC results, see
-[`benchmarks/grouped_jax_study/LUMPED_MODEL.md`](LUMPED_MODEL.md).
+[`benchmarks/grouped_jax_study/LUMPED_MODEL.md`](LUMPED_MODEL.md). For the
+measured spatial/temporal error tail, reduced-state mechanics, matched
+linear/nonlinear sparse-LU supplement, and the distinction between fixed-HVAC
+physics and independent closed-loop rollouts, see the detailed
+[full-versus-grouped analysis](GROUPED_FULL_ANALYSIS.md) and its
+[CSV/JSON/PNG artifacts](results/grouped_full_analysis/analysis_summary.json).
+In the saved 100-zone case, restoring grouped nonlinear radiation leaves the
+0.102 K-scale discrepancy nearly unchanged; separate air, envelope, and mass
+contributions remain unassigned.
 
 ## Running on a Small Synthetic Floor Plan
 
@@ -166,8 +212,7 @@ machine and include the same EPW used in the CPU report. On another machine, set
 the installation and EPW paths for that environment.
 
 ```bash
-EPLUS_DIR="$HOME/.local/share/sbsim/energyplus-24.2"
-EPW="$EPLUS_DIR/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
+EPLUS_DIR="$HOME/.local/share/sbsim/energyplus-24.2" EPW="$EPLUS_DIR/WeatherData/USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw"
 test -r "$EPW" && test -r "$EPLUS_DIR/pyenergyplus/api.py"
 ```
 
@@ -277,6 +322,20 @@ results for the sections run are generated.
 | `sac.csv`, `sac.png`                  | Transition and update counts, environment and learning-stage timings, and total runtime                                            |
 | `sac/<zones>-<engine>/actor.npz`      | Policy neural-network weights from each SAC run                                                                                    |
 
+In `physics`, let $e_{t,z}=|T_{\mathrm{candidate},t,z}-T_{\mathrm{base},t,z}|$,
+where `base` is the full nonlinear model and each $T_{t,z}$ is a **zone-average
+temperature**, not an individual finite-volume cell temperature. The top panel
+in `physics.png` directly overlays **Full JAX and Grouped JAX** in one
+representative zone, chosen by its largest time-averaged absolute grouped-model
+error. Both curves are model-computed zone averages in °C. The bottom panel
+shows the mean absolute Full/Grouped difference over all zones at each time,
+$\mathrm{MAE}(t)=\frac{1}{Z}\sum_z e_{t,z}$, in K. No quantile curve is plotted.
+The scalar MAE, RMSE, p95, and maximum in the error table still use all time ×
+zone samples together. CSV and NPZ temperature series retain the same units and
+zone ordering. The stored Full-linear statistics remain separate numerical
+evidence about longwave linearization; Full linear is not an additional curve in
+this direct Full/Grouped temperature comparison.
+
 For SBSim, `setup_s` includes the `prepare_thermal_system()` call made in
 advance, while `thermal_prepare_s` separately measures that portion. EnergyPlus
 initialization and weather warmup are included in reset. EnergyPlus runs native
@@ -294,8 +353,7 @@ above.
 ```bash
 unset JAX_PLATFORMS
 JAX_GPU_PYTHON="${JAX_GPU_PYTHON:-$PWD/.venv/jax_cuda/bin/python}"
-"$JAX_GPU_PYTHON" -c 'import jax; print(jax.devices("gpu"))' && \
-OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 "$JAX_GPU_PYTHON" \
+"$JAX_GPU_PYTHON" -c 'import jax; print(jax.devices("gpu"))' && \ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 "$JAX_GPU_PYTHON" \
   -m benchmarks.grouped_jax_study.run \
   --epw "$EPW" --energyplus-dir "$EPLUS_DIR" \
   --zones 16 36 100 --physics-zones 100 --days 7 --platform gpu \

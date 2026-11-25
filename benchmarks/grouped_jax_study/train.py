@@ -14,7 +14,7 @@ import numpy as np
 
 
 REPLAY_CAPACITY = 50_000
-MODELS = Path(__file__).resolve().parents[1] / 'eplus_rl_speed' / 'matched_vav' / 'models'
+MODELS = Path(__file__).resolve().parent / 'matched_vav' / 'models'
 
 
 class Replay:

@@ -137,18 +137,402 @@ The 3×3 matrix-reduction example and derivations of interior/exterior long-wave
 radiation and the time step are in
 [HEAT_BALANCE_EQUATIONS.md](HEAT_BALANCE_EQUATIONS.md) in this directory.
 
-## 2. Heat balance with interior thermal mass
+## 2. Code Path from Groups to the Sparse Heat Balance
+
+This section follows how the groups in the figures become Python objects and
+sparse matrices. The central function is `assemble()` in
+`smart_control/simulator/grouped_heat_balance.py`. The solver does not find
+groups again at each step: `GroupedJaxSimulator.prepare_thermal_system()`
+assembles them once for a given exterior convection coefficient $h$ and reuses
+the result.
+
+```text
+building.floor_plan, building._room_dict
+        │
+        ├─ CachedLUSimulator._build_static() → active cells, A_cv, storage/boundaries
+        ├─ _room_enclosures()               → physical air regions, rooms
+        ├─ group_cells()                    → air IDs and initial remaining IDs
+        ├─ group_envelope_cells()           → merged wall/window IDs
+        └─ projection(groups)               → P
+                                               │
+                  A0=P^T A_cv P; also aggregate storage, boundaries, and heat
+                                               │
+                    append interior mass → build radiation → HeatBalance
+                                               │
+                  GroupedJaxSimulator.prepare_thermal_system()
+                             → A0+sR and the selected sparse/JAX solver
+```
+
+Below, $N_{\rm cv}$ is the number of active cells and $N_{\rm core}$ is the
+number of air/wall/window groups before mass is appended. These are 10,101 and
+521 in the 100-zone, 0.50 m example. Snippets preserve the implementation's
+operations; omitted optional arguments are explained in the surrounding text.
+
+### 2.1 Build the Original-Cell Matrix and Air-Region Candidates
+
+`assemble()` first pads the floor plan and calls the existing SBSim static
+builder to obtain matrices **before** grouping.
+
+```python
+floor = building_utils.guarantee_air_padding_in_frame(
+    building.floor_plan
+)
+native = cached_lu_simulator.CachedLUSimulator._build_static(
+    sim, convection_coefficient
+)
+active = native['solved']
+air = floor == constants.INTERIOR_SPACE_VALUE_IN_FILE_INPUT
+rooms = _room_enclosures(building, air)
+```
+
+| Value                            | Shape/type                            | Meaning                                                                         |
+| -------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
+| `native['solved']` → `active`    | Integer vector of length $N_{\rm cv}$ | Original cell positions for which a temperature is solved, excluding ambient.   |
+| `native['a_cond']`               | $N_{\rm cv}\times N_{\rm cv}$ sparse  | Original-cell backward-Euler storage/conduction/convection matrix $A_{\rm cv}$. |
+| `native['storage']`              | Length $N_{\rm cv}$                   | Per-cell storage coefficients $C_i/\Delta t$.                                   |
+| `native['boundary_conductance']` | Length $N_{\rm cv}$                   | Conductance from each cell to its known ambient boundaries.                     |
+| `native['mass_conductance']`     | Length $N_{\rm cv}$                   | Existing native-building mass coupling, removed before common mass assembly.    |
+| `rooms`                          | List of physical air regions          | Each member is an array of `(row, column)` cell coordinates.                    |
+
+`rooms` is not simply one array of all cells under each zone name.
+`_room_enclosures()` reads logical zones beginning with the room prefix in
+`building._room_dict` and also separates physical air regions that are not
+four-connected.
+
+```python
+for name, indices in building._room_dict.items():
+  if not name.startswith(constants.ROOM_STRING_DESIGNATOR):
+    continue
+  cells = np.asarray(indices)
+  cells = cells[air[tuple(cells.T)]]  # Remove non-air candidates
+  labels, count = _label_cells(cells)  # Four-connectivity by default
+  if count == 1:
+    rooms.append(cells)
+  else:
+    rooms.extend(
+        cells[labels == label] for label in range(1, count + 1)
+    )
+```
+
+If a wall separates one HVAC zone's air into two disconnected regions, this
+creates two room records and therefore two air-temperature states. The shared
+helper `_label_cells()` places coordinates into a compact boolean mask and calls
+`scipy.ndimage.label()`; diagonal-only contact does not merge components.
+
+### 2.2 Assign Air IDs, Then Merge Wall and Window IDs
+
+For **air**, `group_cells()` visits each region in `rooms`. The default
+`air_block_cells=None` makes `_tile_cells()` retain the whole region. A supplied
+block size splits coordinate tiles before connected components are labeled.
+
+```python
+for cells in rooms:
+  cells = cells[active_air[tuple(cells.T)]]
+  for tile in _tile_cells(cells, block_cells):
+    labels, count = _label_cells(tile)
+    groups[tuple(tile.T)] = next_group + labels - 1
+    next_group += count
+
+positions = groups.ravel()[solved]
+individual = positions < 0  # Envelope and other not-yet-air cells
+positions[individual] = (
+    next_group + np.arange(np.count_nonzero(individual))
+)
+```
+
+Here `solved` is the `active` argument above, and `block_cells` receives the
+simulator's `air_block_cells`. Labels begin at one, so `next_group + labels - 1`
+creates zero-based consecutive state IDs. Initially, each remaining wall or
+window cell receives its own temporary ID.
+
+For the **envelope**, `group_envelope_cells()` then constructs a signature from
+material and contact information in each direction.
+
+```python
+for side, (dr, dc) in enumerate(directions):
+  for distance in range(1, wall_depth_cells + 1):
+    r, c = row + dr * distance, col + dc * distance
+    if contacts[r, c] != -1:
+      signature.append((side, contacts[r, c], distance))
+      break
+    if floor_plan[r, c] != material:
+      break
+if len(signature) == 2 and signature[0][0] // 2 == signature[1][0] // 2:
+    faces[(material, tuple(signature))].append((row, col))
+```
+
+Only cells with two opposing boundaries become straight-wall-run candidates.
+`contacts` carries a zone ID or `-2` for ambient, so the signature also records
+which side of which zone each face touches. The detected `distance` and
+`wall_depth_cells` distinguish layers through the wall. Cells with the same
+signature are then four-connected and assigned a representative earlier ID.
+
+```python
+labels, count = _label_cells(coords)
+for label in range(1, count + 1):
+  members = positions[labels == label]
+  result[members] = result[members[0]]
+return np.unique(result, return_inverse=True)[1]
+```
+
+The final `return_inverse=True` maps the arbitrary surviving IDs to consecutive
+IDs $0,\ldots,N_{\rm core}-1$. The final `groups` is a **one-dimensional
+length-$N_{\rm cv}$ integer vector aligned with `active`**, not a 2-D grid. At
+position $i$, `active[i]` is the original cell position and `groups[i]` is its
+temperature-state ID. The simulator's `group_map` property expands these IDs
+back to the original grid shape.
+
+### 2.3 Turn Group IDs into the Assignment Matrix $P$
+
+`projection(groups)` makes one row for every original solved cell and puts one 1
+in the column of its group.
+
+```python
+def projection(positions):
+  return sparse.csr_matrix(
+      (
+          np.ones(len(positions)),
+          (np.arange(len(positions)), positions),
+      ),
+      shape=(len(positions), int(positions.max()) + 1),
+  )
+```
+
+The resulting `mapping` has shape $N_{\rm cv}\times N_{\rm core}$ and exactly
+$N_{\rm cv}$ nonzeros.
+
+```python
+groups = [0, 0, 1]  # Cells 0,1 → group 0; cell 2 → group 1
+# P = [[1, 0],
+#      [1, 0],
+#      [0, 1]]
+```
+
+`P @ group_temperature` copies a group temperature to the original cells, and
+`P.T @ cell_vector` sums a cell vector by group. If $D$ is the diagonal storage
+matrix, `P.T @ D @ P` produces grouped diagonal storage. The implementation uses
+faster `np.bincount()` operations for these one-dimensional sums.
+
+### 2.4 Reduce $A_{\rm cv}$, Storage, and Ambient Boundaries
+
+The branch in `assemble()` is:
+
+```python
+if grouped:
+  groups = group_cells(
+      active, air, rooms, block_cells=air_block_cells
+  )
+  groups = group_envelope_cells(
+      active, floor, rooms, groups,
+      wall_depth_cells=wall_depth_cells,
+  )
+  mapping = projection(groups)
+else:
+  groups = np.arange(len(active))  # One state per original active cell
+  mapping = None
+
+core = native['a_cond']
+if building.include_interior_mass:
+  core = core - sparse.diags(native['mass_conductance'])
+if mapping is not None:
+  core = (mapping.T @ core @ mapping).tocsr()
+
+node_count = core.shape[0]
+storage = np.bincount(
+    groups, weights=cv_storage, minlength=node_count
+)
+ambient = np.bincount(
+    groups, weights=native['boundary_conductance'],
+    minlength=node_count,
+)
+```
+
+`mapping.T @ core @ mapping` is $P^TA_{\rm cv}P$. This one sparse operation
+aggregates diagonal storage and all conduction/convection couplings between the
+temperature groups. The `bincount` calculations are equivalent to
+`mapping.T @ cv_storage` and `mapping.T @ native['boundary_conductance']`,
+respectively.
+
+`ambient` is not the ambient temperature. It is the sum of conductances from a
+group to its ambient boundaries. Each step calculates `system.ambient * outdoor`
+and places it in the known right-hand-side forcing. With `grouped=False`, the
+sparse product is skipped and `groups=np.arange(N_cv)` leaves the storage and
+boundary entries unchanged: this is why $P$ is conceptually the identity.
+
+When native building mass is enabled, the native coupling inserted by
+`_build_static()` is removed here before the common mass assembly below adds it
+back exactly once.
+
+### 2.5 Append Mass Temperatures and Their Air Coupling
+
+With `include_interior_mass=True`, `_mass_properties()` calculates an area for
+every original air cell and applies the requested properties.
+
+```python
+storage = config.capacity_per_m2 * area / sim._time_step_sec
+conductance = config.air_conductance_per_m2 * area
+gray_area = (
+    config.emissivity * config.exposed_area_per_m2
+) * area
+```
+
+This is the explicit `InteriorMass` branch. The `storage` above is
+$C_m/\Delta t$ [W/K], where $C_m$ is heat capacity [J/K]. If no explicit config
+is supplied and the building uses native mass, the code instead uses its density
+[kg/m³], specific heat [J/(kg·K)], cell area [m²], and building height \[m\]:
+
+```python
+height = building.floor_height_cm / 100
+storage = (
+    building.interior_mass_density[cells]
+    * building.interior_mass_heat_capacity[cells]
+    * area
+    * height
+    / sim._time_step_sec
+)
+conductance = native['mass_conductance'][mass_positions]
+```
+
+Thus native storage is $\rho_m c_m A h/\Delta t$ [W/K], not merely $\rho_m c_m$.
+Multiplying by area and height first produces heat capacity [J/K]; dividing by
+$\Delta t$ produces the backward-Euler storage coefficient [W/K]. Air
+conductance comes directly from the native building, and native emissivity times
+cell area supplies the radiating gray area. Both branches then use the same
+grouping and matrix assembly below.
+
+The following code aggregates original-cell masses by their air groups and adds
+the states and couplings to the matrix.
+
+```python
+mass_air = groups[mass_positions]  # Air group connected to each mass cell
+_, mass_group = np.unique(mass_air, return_inverse=True)
+mass_nodes = node_count + mass_group
+mass_storage = np.bincount(
+    mass_group, weights=mass_cell_storage, minlength=mass_count
+)
+links = sparse.csr_matrix(
+    (-conductance, (mass_air, mass_group)),
+    shape=(node_count, mass_count),
+)
+core = sparse.bmat(
+    (
+        (core + sparse.diags(air_exchange), links),
+        (links.T, sparse.diags(mass_storage + mass_exchange)),
+    ),
+    format='csr',
+)
+storage = np.concatenate((storage, mass_storage))
+```
+
+`air_exchange` and `mass_exchange` are $G_{am}$ values summed by air group and
+mass group, respectively. `links` contains the off-diagonal $-G_{am}$ terms; the
+diagonal additions supply $+G_{am}$ in each balance. Thus air and mass see
+$G_{am}(T_a-T_m)$ with opposite signs and exchange energy conservatively.
+
+After expansion, state and matrix layout are:
+
+$$
+\theta= \begin{bmatrix}\theta_{\rm core}\\theta_m\end{bmatrix}, \qquad A_0= \begin{bmatrix} A_{\rm core}+\operatorname{diag}(G_a)&L\\ L^{\mathsf{T}}&D_m+\operatorname{diag}(G_m) \end{bmatrix}, \qquad L_{gm}=-G_{gm}.
+$$
+
+`mass_nodes[k] = node_count + mass_group[k]` is the full-state ID of original
+mass cell k. The full-state ID of mass group g itself is `node_count + g`.
+`mass_at` records it at original mass-cell positions for radiation and output.
+`HeatBalance.storage` likewise becomes a vector of length $N_{\rm core}+N_m$.
+Subdividing air groups also increases the number of grouped mass states.
+
+### 2.6 Assemble Interior Radiation Factors and Exterior Emission
+
+An air-temperature state is not itself a wall/window radiating face.
+`_interior_radiation()` finds each room's solid boundary faces and interior
+mass, then sums $w=\epsilon a$ by their temperature-state IDs.
+
+```python
+nodes = np.concatenate((group_at[face_coords], mass_at[room][room_mass]))
+weights = np.concatenate((weight_at[face_coords], mass_area_at[room][room_mass]))
+nodes, inverse = np.unique(nodes[keep], return_inverse=True)
+weights = np.bincount(inverse, weights=weights[keep])
+diagonal[nodes] += sigma * weights
+values.extend(np.sqrt(sigma / weights.sum()) * weights)
+factors = sparse.csr_matrix(
+    (values, (row_indices, columns)), shape=(len(rooms), size)
+)
+```
+
+For each room z, the short row vector
+$W_z=\sqrt{\sigma/\sum_{i\in z}w_i}\,w^{\mathsf{T}}$ becomes one row of
+`room_factors`. `_exterior_geometry()` also sums exposed area and emissivity by
+state, placing $\sigma\sum_i\epsilon_i a_i$ in `geometry.emission`. It prepares
+the exterior geometry used each step for absorbed/transmitted shortwave and
+incident longwave forcing.
+
+The final combined matrix has the compact form:
+
+```python
+radiation = (
+    sparse.diags(radiative_diag) - room_factors.T @ room_factors
+).tocsr()
+```
+
+That is $R=\operatorname{diag}(r)-W^{\mathsf{T}}W$. Within one room it expands
+to $\sigma[\operatorname{diag}(w)-ww^T/\sum w]$, the operator derived above.
+Stacking room-specific rows does not create false radiative links between zones.
+Exterior longwave emission enters the diagonal, known incident longwave enters
+the right-hand side, and shortwave gains are kept separate from this
+fourth-power matrix.
+
+### 2.7 Pass `HeatBalance` into the Actual Solver
+
+The final `HeatBalance(...)` is a frozen dataclass carrying these mappings and
+matrices to `GroupedJaxSimulator`.
+
+| Field                                | Information passed to the solver                                                             |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `active`, `groups`                   | Original-cell locations and their group IDs, used for previous temperatures and grid output. |
+| `storage`                            | Per-state $C/\Delta t$, including appended mass.                                             |
+| `conduction`                         | Expanded sparse $A_0$, including mass coupling.                                              |
+| `radiation`                          | Sparse interior/exterior longwave $R$.                                                       |
+| `ambient`                            | Ambient-boundary conductance summed by state.                                                |
+| `geometry`                           | Exterior geometry for per-step shortwave and incident-longwave forcing.                      |
+| `mass_active`, `mass_nodes`          | Original mass-cell locations and their full-state IDs.                                       |
+| `cv_storage`, `mass_cell_storage`    | Original-cell storage coefficients used in previous-group-temperature weighted means.        |
+| `radiation_diagonal`, `room_factors` | Low-cost JAX CG operation $Rx=rx-W^T(Wx)$.                                                   |
+
+`GroupedJaxSimulator.prepare_thermal_system()` in
+`smart_control/simulator/grouped_jax_simulator.py` consumes it:
+
+```python
+system = grouped_heat_balance.assemble(
+    self, h, grouped=self.grouped,
+    wall_depth_cells=self.wall_depth_cells,
+    air_block_cells=self.air_block_cells,
+    # Remaining radiation and mass options are also forwarded
+)
+matrix = (system.conduction + _SLOPE * system.radiation).tocsr()
+conductance = (
+    system.conduction - sparse.diags(system.storage)
+).tocsr()
+```
+
+Here `matrix` is $M=A_0+sR$. `_SLOPE`, `system.conduction`, and
+`system.radiation` are reused for a given $h$, so changing weather and HVAC
+inputs do not require rebuilding groups or the matrix each step. How the
+right-hand side is constructed, why the slope is fixed, and the actual step
+solve are shown with code in Sections 4.8–4.9 of
+[HEAT_BALANCE_EQUATIONS.md](HEAT_BALANCE_EQUATIONS.md).
+
+## 3. Heat balance with interior thermal mass
 
 `InteriorMass` represents furniture and other indoor objects as independent
 temperature states. Air heat capacity remains unchanged, and the following
 effective properties are applied per unit floor area.
 
-| Explicit `InteriorMass()` property    |                                    Default |             20 m² zone |
-| ------------------------------------- | -----------------------------------------: | ---------------------: |
+| Explicit `InteriorMass()` property    | Default                                    |             20 m² zone |
+| ------------------------------------- | ------------------------------------------ | ---------------------: |
 | Heat capacity                         | 30,000 J/(m² floor·K) = 30 kJ/(m² floor·K) | 600,000 J/K = 600 kJ/K |
-| Air-to-mass heat-transfer coefficient |                           3 W/(m² floor·K) |                 60 W/K |
-| Radiation-exposed area                |                       1.0 times floor area |                  20 m² |
-| Emissivity                            |                                       0.90 |                   0.90 |
+| Air-to-mass heat-transfer coefficient | 3 W/(m² floor·K)                           |                 60 W/K |
+| Radiation-exposed area                | 1.0 times floor area                       |                  20 m² |
+| Emissivity                            | 0.90                                       |                   0.90 |
 
 These values can be changed with `capacity_per_m2`, `air_conductance_per_m2`,
 `exposed_area_per_m2`, and `emissivity`. They are effective model inputs, not
@@ -249,7 +633,7 @@ convergence information.
 criteria are not met. A linearized-radiation step solves one linear system
 without an outer radiation iteration.
 
-## 3. Current 100-zone, 5-minute, 7-day benchmark
+## 4. Current 100-zone, 5-minute, 7-day benchmark
 
 `benchmarks/grouped_jax_study/run.py` compares **2,016 steps starting on July
 15, 2024**, using the common office floor plan and Chicago O’Hare TMY3 EPW. The

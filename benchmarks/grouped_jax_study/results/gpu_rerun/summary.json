@@ -1,0 +1,307 @@
+{
+  "sections": [
+    "timing",
+    "physics"
+  ],
+  "section_grouped_method": {
+    "timing": "dense",
+    "physics": "cg"
+  },
+  "physics_zones": 100,
+  "setup": {
+    "start_day": "2024-07-15",
+    "days": 7,
+    "zones": [
+      16,
+      36,
+      100
+    ],
+    "episode_steps": 2016,
+    "cv_size_m": 0.5,
+    "window_width_m": 2.0,
+    "epw": "USA_IL_Chicago-OHare.Intl.AP.725300_TMY3.epw",
+    "epw_sha256": "3cc3dc0c7bcc93e7203e8d9aab657d384315f5a0c86cdede23f792d437a0309f",
+    "platform": "gpu",
+    "jax_device": "NVIDIA GeForce RTX 3080",
+    "jax": "0.4.34",
+    "host": "Linux-6.18.58.1-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "energyplus_input_version": "24.2",
+    "cpu_affinity": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "seed": 0,
+    "collect_every": 96,
+    "updates": 8,
+    "batch_size": 256,
+    "grouped_method": "dense",
+    "effective_interior_mass": {
+      "capacity_per_m2": 30000.0,
+      "air_conductance_per_m2": 3.0,
+      "exposed_area_per_m2": 1.0,
+      "emissivity": 0.9
+    }
+  },
+  "timing": [
+    {
+      "zones": 16,
+      "engine": "full_jax",
+      "steps": 2016,
+      "setup_s": 1.7188200149976183,
+      "reset_s": 0.0010691869974834844,
+      "first_step_s": 0.020406030002050102,
+      "shutdown_s": 1.3460012269206345e-06,
+      "step_sum_s": 40.79036719002761,
+      "warm_ms": 20.233231344925834,
+      "warm_p95_ms": 26.894199495291105,
+      "min_zone_c": 19.843503952026367,
+      "max_zone_c": 42.022499084472656,
+      "thermal_nodes": 2945,
+      "mass_nodes": 1280,
+      "thermal_prepare_s": 1.6958060309989378,
+      "method": "cg"
+    },
+    {
+      "zones": 16,
+      "engine": "grouped_jax",
+      "steps": 2016,
+      "setup_s": 0.31167494600231294,
+      "reset_s": 0.0009751920006237924,
+      "first_step_s": 0.016931094003666658,
+      "shutdown_s": 1.1619995348155499e-06,
+      "step_sum_s": 5.109824583218142,
+      "warm_ms": 2.5274905653669855,
+      "warm_p95_ms": 3.624415499507449,
+      "min_zone_c": 19.99404525756836,
+      "max_zone_c": 41.861572265625,
+      "thermal_nodes": 129,
+      "mass_nodes": 16,
+      "thermal_prepare_s": 0.28663039000093704,
+      "method": "dense"
+    },
+    {
+      "zones": 16,
+      "engine": "energyplus",
+      "steps": 2016,
+      "setup_s": 4.625307993999741,
+      "reset_s": 2.278084548001061,
+      "first_step_s": 0.005201751002459787,
+      "shutdown_s": 1.294829723003204,
+      "step_sum_s": 2.537811924084963,
+      "warm_ms": 1.256878497807694,
+      "warm_p95_ms": 2.528603502287296,
+      "min_zone_c": 21.13555335998535,
+      "max_zone_c": 26.83278465270996,
+      "energyplus_completion": [
+        "EnergyPlus Completed Successfully-- 0 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  4.59sec"
+      ]
+    },
+    {
+      "zones": 36,
+      "engine": "full_jax",
+      "steps": 2016,
+      "setup_s": 2.1490147360018454,
+      "reset_s": 0.0016393479963880964,
+      "first_step_s": 0.03848034999828087,
+      "shutdown_s": 1.1320007615722716e-06,
+      "step_sum_s": 40.753016883842065,
+      "warm_ms": 20.20572532696962,
+      "warm_p95_ms": 25.25011099714902,
+      "min_zone_c": 19.9195556640625,
+      "max_zone_c": 42.00031280517578,
+      "thermal_nodes": 6565,
+      "mass_nodes": 2880,
+      "thermal_prepare_s": 2.0965725259957253,
+      "method": "cg"
+    },
+    {
+      "zones": 36,
+      "engine": "grouped_jax",
+      "steps": 2016,
+      "setup_s": 0.26800739499594783,
+      "reset_s": 0.0013114230023347773,
+      "first_step_s": 0.01614475200040033,
+      "shutdown_s": 7.870039553381503e-07,
+      "step_sum_s": 5.588822714242269,
+      "warm_ms": 2.7655970035939794,
+      "warm_p95_ms": 3.665305897447979,
+      "min_zone_c": 20.03827667236328,
+      "max_zone_c": 41.84428405761719,
+      "thermal_nodes": 253,
+      "mass_nodes": 36,
+      "thermal_prepare_s": 0.2211995800025761,
+      "method": "dense"
+    },
+    {
+      "zones": 36,
+      "engine": "energyplus",
+      "steps": 2016,
+      "setup_s": 2.8319921379952575,
+      "reset_s": 3.5639806899998803,
+      "first_step_s": 0.0028188470023451373,
+      "shutdown_s": 1.1424826639995445,
+      "step_sum_s": 3.8330382543063024,
+      "warm_ms": 1.9008533038729316,
+      "warm_p95_ms": 3.866903397283749,
+      "min_zone_c": 21.192399978637695,
+      "max_zone_c": 26.89259910583496,
+      "energyplus_completion": [
+        "EnergyPlus Completed Successfully-- 0 Warning; 0 Severe Errors; Elapsed Time=00hr 00min  7.24sec"
+      ]
+    },
+    {
+      "zones": 100,
+      "engine": "full_jax",
+      "steps": 2016,
+      "setup_s": 10.171447537002678,
+      "reset_s": 0.0018557660005171783,
+      "first_step_s": 0.03602348500135122,
+      "shutdown_s": 1.525993866380304e-06,
+      "step_sum_s": 44.46525342990935,
+      "warm_ms": 22.049245630227297,
+      "warm_p95_ms": 26.486625704274047,
+      "min_zone_c": 19.803749084472656,
+      "max_zone_c": 42.00222396850586,
+      "thermal_nodes": 18101,
+      "mass_nodes": 8000,
+      "thermal_prepare_s": 9.96405902600236,
+      "method": "cg"
+    },
+    {
+      "zones": 100,
+      "engine": "grouped_jax",
+      "steps": 2016,
+      "setup_s": 0.598056959999667,
+      "reset_s": 0.0017739839968271554,
+      "first_step_s": 0.008967269997810945,
+      "shutdown_s": 1.9690050976350904e-06,
+      "step_sum_s": 9.196257610004977,
+      "warm_ms": 4.559449300251695,
+      "warm_p95_ms": 6.357219996425556,
+      "min_zone_c": 19.93900489807129,
+      "max_zone_c": 41.846187591552734,
+      "thermal_nodes": 621,
+      "mass_nodes": 100,
+      "thermal_prepare_s": 0.47248648700042395,
+      "method": "dense"
+    },
+    {
+      "zones": 100,
+      "engine": "energyplus",
+      "steps": 2016,
+      "setup_s": 2.902016416999686,
+      "reset_s": 9.80829850599548,
+      "first_step_s": 0.006503156000690069,
+      "shutdown_s": 1.3744218299980275,
+      "step_sum_s": 12.63029785497929,
+      "warm_ms": 6.264910520584913,
+      "warm_p95_ms": 13.641384204674976,
+      "min_zone_c": 21.068113327026367,
+      "max_zone_c": 26.890625,
+      "energyplus_completion": [
+        "EnergyPlus Completed Successfully-- 0 Warning; 0 Severe Errors; Elapsed Time=00hr 00min 22.88sec"
+      ]
+    }
+  ],
+  "physics": {
+    "zones": 100,
+    "steps": 2016,
+    "metrics": [
+      {
+        "variant": "full_jax",
+        "zones": 100,
+        "steps": 2016,
+        "setup_s": 8.02384537600301,
+        "first_step_s": 0.03586975399957737,
+        "mean_step_ms": 21.41172370912606,
+        "control": "native_vav",
+        "linear_solves_per_step": {
+          "2": 478,
+          "3": 1538
+        },
+        "thermal_nodes": 18101,
+        "mass_nodes": 8000,
+        "thermal_prepare_s": 7.882393993997539,
+        "method": "cg"
+      },
+      {
+        "variant": "full_linear",
+        "zones": 100,
+        "steps": 2016,
+        "setup_s": 6.671046087998548,
+        "first_step_s": 0.03196678599488223,
+        "mean_step_ms": 14.90698669332677,
+        "control": "hvac_replay",
+        "linear_solves_per_step": {
+          "1": 2016
+        },
+        "thermal_nodes": 18101,
+        "mass_nodes": 8000,
+        "thermal_prepare_s": 6.435104824005975,
+        "method": "cg"
+      },
+      {
+        "variant": "grouped_jax",
+        "zones": 100,
+        "steps": 2016,
+        "setup_s": 0.9718618339975365,
+        "first_step_s": 0.006315067003015429,
+        "mean_step_ms": 4.534819339842983,
+        "control": "hvac_replay",
+        "linear_solves_per_step": {
+          "1": 2016
+        },
+        "thermal_nodes": 621,
+        "mass_nodes": 100,
+        "thermal_prepare_s": 0.8728470839996589,
+        "method": "cg"
+      }
+    ],
+    "comparisons": [
+      {
+        "comparison": "full_linear_minus_full_nonlinear",
+        "bias_k": 1.319892665418021e-05,
+        "mae_k": 0.00012475962131903838,
+        "rmse_k": 0.000245691014855164,
+        "p95_absolute_k": 0.0005691243756700713,
+        "max_absolute_k": 0.0021518515581533393,
+        "maximum_zone": "room_91",
+        "maximum_interval_end": "2024-07-20T15:40:00-06:00"
+      },
+      {
+        "comparison": "grouped_linear_minus_full_nonlinear",
+        "bias_k": 0.09981509589340483,
+        "mae_k": 0.10218534085924065,
+        "rmse_k": 0.15052959906568394,
+        "p95_absolute_k": 0.35000543406189305,
+        "max_absolute_k": 0.5596723988680878,
+        "maximum_zone": "room_1",
+        "maximum_interval_end": "2024-07-19T18:10:00-06:00"
+      },
+      {
+        "comparison": "grouped_linear_minus_full_linear",
+        "bias_k": 0.09980189696675067,
+        "mae_k": 0.10218892483938163,
+        "rmse_k": 0.15047441695676006,
+        "p95_absolute_k": 0.34970870703787965,
+        "max_absolute_k": 0.5586414467811096,
+        "maximum_zone": "room_1",
+        "maximum_interval_end": "2024-07-19T18:10:00-06:00"
+      }
+    ]
+  }
+}
