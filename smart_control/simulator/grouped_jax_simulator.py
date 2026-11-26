@@ -172,6 +172,7 @@ class GroupedJaxSimulator(cached_lu_simulator.CachedLUSimulator):
       include_interior_mass: bool | None = None,
       linearized_radiative_heat_transfer: bool = True,
       interior_mass: InteriorMass | None = None,
+      solar_to_interior_mass: bool = True,
       platform: str = 'cpu',
       solver_method: str = 'sparse_lu',
       wall_depth_cells: int = 1,
@@ -210,6 +211,7 @@ class GroupedJaxSimulator(cached_lu_simulator.CachedLUSimulator):
     self._exterior_override = include_exterior_radiative_heat_transfer
     self._mass_override = include_interior_mass
     self._mass_config = interior_mass
+    self.solar_to_interior_mass = bool(solar_to_interior_mass)
     self.grouped = grouped
     self.wall_depth_cells = wall_depth_cells
     self.air_block_cells = air_block_cells
@@ -310,6 +312,7 @@ class GroupedJaxSimulator(cached_lu_simulator.CachedLUSimulator):
         ),
         include_interior_mass=self.include_interior_mass,
         interior_mass=self._mass_config,
+        solar_to_interior_mass=self.solar_to_interior_mass,
     )
     matrix = (system.conduction + _SLOPE * system.radiation).tocsr()
     matrix.sort_indices()

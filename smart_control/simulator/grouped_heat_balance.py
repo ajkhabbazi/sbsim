@@ -391,6 +391,7 @@ def assemble(
     include_exterior_radiative_heat_transfer,
     include_interior_mass,
     interior_mass,
+    solar_to_interior_mass=True,
 ):
   """Assemble the same conductance and gray area-ratio radiation on either grid.
 
@@ -398,8 +399,8 @@ def assemble(
   configuration, native mass uses the building's volumetric capacity and
   exchange coefficient, plus its emissivity when available and unit exposed
   area per floor area.
-  Glazing transmits shortwave power to native mass where present, otherwise
-  to the connected air groups as in the effective mass model.
+  Glazing transmits shortwave power to interior mass nodes when interior mass
+  is enabled (by default), otherwise to the connected air groups.
   """
   building = sim.building
   floor = building_utils.guarantee_air_padding_in_frame(building.floor_plan)
@@ -492,11 +493,7 @@ def assemble(
   geometry = None
   if include_exterior_radiative_heat_transfer:
     solar_mass_at = (
-        mass_at
-        if include_interior_mass
-        and interior_mass is None
-        and building.include_interior_mass
-        else None
+        mass_at if include_interior_mass and solar_to_interior_mass else None
     )
     geometry = _exterior_geometry(
         sim, floor, active, group_at, size, solar_mass_at

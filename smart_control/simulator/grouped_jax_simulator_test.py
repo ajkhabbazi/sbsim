@@ -18,13 +18,16 @@ from smart_control.simulator import weather_controller
 
 class GroupedJaxSimulatorTest(parameterized.TestCase):
 
-  def make_sim(self, *, native_mass_with_glazing=False, **kwargs):
+  def make_sim(
+      self, *, native_mass_with_glazing=False, with_glazing=False, **kwargs
+  ):
     plan = np.full((12, 14), 2)
     plan[1:-1, 1:-1] = 1
     plan[2:-2, 2:-2] = 0
     building_options = {}
-    if native_mass_with_glazing:
+    if with_glazing or native_mass_with_glazing:
       plan[1, 5] = constants.FENESTRATION_VALUE_IN_FILE_INPUT
+    if native_mass_with_glazing:
       building_options.update(
           include_interior_mass=True,
           interior_mass_properties=building.MaterialProperties(
@@ -168,6 +171,62 @@ class GroupedJaxSimulatorTest(parameterized.TestCase):
     np.testing.assert_allclose(
         actual.shortwave_air_gain + actual.mass_gain, expected
     )
+
+  @parameterized.parameters(False, True)
+  def test_effective_mass_receives_transmitted_window_solar_by_default(
+      self, grouped
+  ):
+    sim = self.make_sim(
+        with_glazing=True,
+        grouped=grouped,
+        include_interior_mass=True,
+        interior_mass=grouped_jax_simulator.InteriorMass(),
+        include_exterior_radiative_heat_transfer=True,
+    )
+    sim.prepare_thermal_system(12.0)
+    system = sim._grouped_system
+    weather = solar_radiation.ExteriorRadiationData(
+        sim.current_timestamp,
+        305.0,
+        290.0,
+        solar_radiation.IrradianceComponents(600.0, 500.0, 100.0, 45.0, 180.0),
+    )
+    poa = (350.0, 200.0, 500.0, 400.0)
+    native = sim._build_exterior_radiation_geometry().forcing(
+        weather, poa_irradiance=poa
+    )
+    actual = system.geometry.forcing(weather, poa_irradiance=poa)
+    total_gain = actual.shortwave_air_gain + actual.mass_gain
+    air_mask = (
+        sim.building.floor_plan.ravel()[system.active]
+        == constants.INTERIOR_SPACE_VALUE_IN_FILE_INPUT
+    )
+    air_nodes = np.unique(system.groups[air_mask])
+    mass_nodes = np.unique(system.mass_nodes)
+    np.testing.assert_allclose(total_gain[air_nodes], 0.0, atol=1e-12)
+    expected_transmitted = native.shortwave_air_gain.ravel()[
+        system.mass_active
+    ].sum()
+    self.assertGreater(expected_transmitted, 0.0)
+    np.testing.assert_allclose(
+        total_gain[mass_nodes].sum(), expected_transmitted
+    )
+
+    sim_to_air = self.make_sim(
+        with_glazing=True,
+        grouped=grouped,
+        include_interior_mass=True,
+        interior_mass=grouped_jax_simulator.InteriorMass(),
+        include_exterior_radiative_heat_transfer=True,
+        solar_to_interior_mass=False,
+    )
+    sim_to_air.prepare_thermal_system(12.0)
+    air_forcing = sim_to_air._grouped_system.geometry.forcing(
+        weather, poa_irradiance=poa
+    )
+    air_total = air_forcing.shortwave_air_gain + air_forcing.mass_gain
+    np.testing.assert_allclose(air_total[mass_nodes], 0.0, atol=1e-12)
+    np.testing.assert_allclose(air_total[air_nodes].sum(), expected_transmitted)
 
   def test_standard_vav_interface_advances_one_interval(self):
     sim = self.make_sim(include_exterior_radiative_heat_transfer=False)

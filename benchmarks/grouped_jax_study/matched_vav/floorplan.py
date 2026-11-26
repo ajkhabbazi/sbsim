@@ -20,6 +20,7 @@ class PlanSpec:
   wall_thickness_m: float = 0.5
   cv_size_m: float = 0.5
   window_width_m: float = 0.0
+  exterior_wall_thickness_m: float | None = None
 
 
 @dataclass(frozen=True)
@@ -81,6 +82,15 @@ def make_plan(spec: PlanSpec) -> FloorPlan:
       raise ValueError(f'{name} must be positive and finite')
   cv = spec.cv_size_m
   thickness = _cells(spec.wall_thickness_m, cv, 'wall_thickness_m')
+  ext_thickness = (
+      _cells(
+          spec.exterior_wall_thickness_m, cv, 'exterior_wall_thickness_m'
+      )
+      if spec.exterior_wall_thickness_m is not None
+      else thickness
+  )
+  if ext_thickness < thickness:
+    raise ValueError('exterior_wall_thickness_m must be >= wall_thickness_m')
   width = _cells(spec.room_width_m, cv, 'room_width_m')
   depth = _cells(spec.room_depth_m, cv, 'room_depth_m')
   window = 0
@@ -95,7 +105,10 @@ def make_plan(spec: PlanSpec) -> FloorPlan:
   rows = math.ceil(spec.zones / cols)
   step_x, step_y = width + thickness, depth + thickness
   grid = np.full(
-      (rows * step_y + thickness + 2, cols * step_x + thickness + 2),
+      (
+          rows * step_y - thickness + 2 * ext_thickness + 2,
+          cols * step_x - thickness + 2 * ext_thickness + 2,
+      ),
       constants.EXTERIOR_SPACE_VALUE_IN_FILE_INPUT,
       dtype=np.uint8,
   )
@@ -104,10 +117,16 @@ def make_plan(spec: PlanSpec) -> FloorPlan:
   rooms = []
   # SBSim row zero faces north. EnergyPlus uses y increasing northward.
   for (row, col), name in names.items():
-    r0, c0 = 1 + thickness + row * step_y, 1 + thickness + col * step_x
+    r0, c0 = 1 + ext_thickness + row * step_y, 1 + ext_thickness + col * step_x
     r1, c1 = r0 + depth, c0 + width
+    locations = ((row + 1, col), (row, col + 1), (row - 1, col), (row, col - 1))
+    sides = ('south', 'east', 'north', 'west')
+    pad_s = thickness if locations[0] in names else ext_thickness
+    pad_e = thickness if locations[1] in names else ext_thickness
+    pad_n = thickness if locations[2] in names else ext_thickness
+    pad_w = thickness if locations[3] in names else ext_thickness
     shell = np.s_[
-        r0 - thickness : r1 + thickness, c0 - thickness : c1 + thickness
+        r0 - pad_n : r1 + pad_s, c0 - pad_w : c1 + pad_e
     ]
     air = np.s_[r0:r1, c0:c1]
     for array in (grid, zone_map):
@@ -117,14 +136,12 @@ def make_plan(spec: PlanSpec) -> FloorPlan:
     west, east = (c0 - 1) * cv, (c1 - 1) * cv
     south, north = (grid.shape[0] - 1 - r1) * cv, (grid.shape[0] - 1 - r0) * cv
     corners = ((west, south), (east, south), (east, north), (west, north))
-    locations = ((row + 1, col), (row, col + 1), (row - 1, col), (row, col - 1))
-    sides = ('south', 'east', 'north', 'west')
     dx, dy = (width - window) // 2, (depth - window) // 2
     glazing = (
-        np.s_[r1 : r1 + thickness, c0 + dx : c0 + dx + window],
-        np.s_[r0 + dy : r0 + dy + window, c1 : c1 + thickness],
-        np.s_[r0 - thickness : r0, c0 + dx : c0 + dx + window],
-        np.s_[r0 + dy : r0 + dy + window, c0 - thickness : c0],
+        np.s_[r1 : r1 + ext_thickness, c0 + dx : c0 + dx + window],
+        np.s_[r0 + dy : r0 + dy + window, c1 : c1 + ext_thickness],
+        np.s_[r0 - ext_thickness : r0, c0 + dx : c0 + dx + window],
+        np.s_[r0 + dy : r0 + dy + window, c0 - ext_thickness : c0],
     )
     walls = []
     for i, side in enumerate(sides):

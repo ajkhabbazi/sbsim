@@ -96,6 +96,7 @@ def main():
   parser.add_argument('--room-depth-m', type=float, default=4.0)
   parser.add_argument('--height-m', type=float, default=3.0)
   parser.add_argument('--wall-thickness-m', type=float, default=0.5)
+  parser.add_argument('--exterior-wall-thickness-m', type=float, default=None)
   parser.add_argument('--cv-size-m', type=float, default=0.5)
   parser.add_argument('--window-width-m', type=float, default=0.0)
   parser.add_argument(

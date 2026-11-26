@@ -55,22 +55,41 @@ def test_mass_capacity_and_jax_match_direct_heat_balance(tmp_path):
   heat = np.linspace(-100.0, 50.0, len(plan.rooms))
   correction = initial**4 - interior_mass.SLOPE * initial
   matrix = (mass.conduction + interior_mass.SLOPE * mass.radiation).toarray()
-  geometry = static['geometry']
-  outdoor = weather.get_current_temp(weather.start)
-  exterior = geometry.forcing(weather.get_exterior_radiation(weather.start, outdoor))
-  projected_office = np.bincount(
-      static['groups'], weights=native._office_heat[weather.start.hour].ravel()[static['active']]
+  # Check a daytime step (12:00) so transmitted window solar is nonzero and
+  # verified to enter interior mass nodes rather than room air nodes.
+  daytime_step = 12 * 12
+  stamp = weather._data.index[daytime_step]
+  outdoor = weather.get_current_temp(stamp)
+  poa = weather.facade_flux(stamp, mass.geometry.azimuths)
+  exterior = mass.geometry.forcing(
+      weather.get_exterior_radiation(stamp, outdoor), poa_irradiance=poa
   )
-  source = np.pad(
-      static['ambient'] * outdoor + projected_office + exterior.shortwave_air_gain
-      + exterior.emission * exterior.radiant_temperature**4,
-      (0, len(plan.rooms)),
+  base_exterior = static['geometry'].forcing(
+      weather.get_exterior_radiation(stamp, outdoor), poa_irradiance=poa
+  )
+  np.testing.assert_allclose(
+      exterior.shortwave_air_gain[air_nodes], 0.0, atol=1e-12
+  )
+  assert exterior.shortwave_air_gain[base_count:].sum() > 0.0
+  np.testing.assert_allclose(
+      exterior.shortwave_air_gain[base_count:],
+      base_exterior.shortwave_air_gain[air_nodes],
+  )
+  projected_office = np.bincount(
+      static['groups'],
+      weights=native._office_heat[stamp.hour].ravel()[static['active']],
+  )
+  source = (
+      np.pad(static['ambient'] * outdoor + projected_office, (0, len(plan.rooms)))
+      + exterior.shortwave_air_gain
+      + exterior.mass_gain
+      + exterior.emission * exterior.radiant_temperature**4
   )
   rhs = mass.storage * initial - radiation @ correction + source
   rhs[air_nodes] += heat
   expected = np.linalg.solve(matrix, rhs)
   result = jax_env._temperature_update(
-      initial, heat, env._operators.sources[0], env._operators.transition
+      initial, heat, env._operators.sources[daytime_step], env._operators.transition
   )
   np.testing.assert_allclose(result, expected, rtol=0, atol=1e-9)
 

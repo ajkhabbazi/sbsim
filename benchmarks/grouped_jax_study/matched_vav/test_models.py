@@ -244,3 +244,43 @@ def test_office_gains_heat_air_and_do_not_accumulate_in_hvac_forcing():
   np.testing.assert_array_equal(
       office.building.input_q, baseline.building.input_q
   )
+
+
+def test_two_cv_exterior_wall_preserves_floor_area_and_matches_energyplus():
+  import datetime
+  import pandas as pd
+  from . import energyplus_model
+  from . import sbsim_model
+  from . import settings
+  from smart_control.simulator import weather_controller
+
+  plan_1cv = floorplan.make_plan(floorplan.PlanSpec(5, window_width_m=2))
+  plan_2cv = floorplan.make_plan(
+      floorplan.PlanSpec(
+          5,
+          window_width_m=2,
+          exterior_wall_thickness_m=settings.EXTERIOR_WALL_THICKNESS_M,
+      )
+  )
+  assert [r.area_m2 for r in plan_2cv.rooms] == [r.area_m2 for r in plan_1cv.rooms]
+  assert [r.volume_m3 for r in plan_2cv.rooms] == [r.volume_m3 for r in plan_1cv.rooms]
+  assert np.count_nonzero(plan_2cv.zone_map == 0) == np.count_nonzero(plan_1cv.zone_map == 0)
+  assert plan_2cv.grid.shape == (plan_1cv.grid.shape[0] + 2, plan_1cv.grid.shape[1] + 2)
+  assert np.count_nonzero(plan_2cv.grid == 4) == 2 * np.count_nonzero(plan_1cv.grid == 4)
+
+  ep = energyplus_model.make_model(plan_2cv, datetime.date(2024, 7, 15), '24.2')
+  assert ep['Zone']['room_5']['floor_area'] == 20.0
+  assert ep['Zone']['room_5']['volume'] == 60.0
+
+  start = pd.Timestamp('2024-07-15 12:00', tz='UTC')
+  sim = sbsim_model.make_simulator(
+      plan_2cv,
+      weather_controller.WeatherController(305.0, 305.0),
+      start,
+      detailed_office=True,
+      solver='linear-radiation',
+  )
+  sim.step_sim()
+  temps = sim.building.get_zone_average_temps()
+  assert list(temps) == [f'room_{i}' for i in range(1, 6)]
+  assert np.isfinite(list(temps.values())).all()

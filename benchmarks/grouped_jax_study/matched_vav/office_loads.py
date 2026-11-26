@@ -101,3 +101,11 @@ def sensible_watts(room: Room, hour: int) -> float:
       + use.lights_w_per_m2 * LIGHTS[hour]
       + use.plugs_w_per_m2 * PLUGS[hour]
   )
+
+
+def weekend_sensible_watts(room: Room) -> float:
+  """Weekend office gains matching detailed_office.py (0% occ, 20% light, 35% plug)."""
+  use = room_use(room)
+  return room.area_m2 * (
+      use.lights_w_per_m2 * 0.20 + use.plugs_w_per_m2 * 0.35
+  )

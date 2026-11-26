@@ -59,7 +59,9 @@ class _Operators(NamedTuple):
   cooling_supply: float
 
 
-def _build_operators(model_dir, epw, episode_days, mass_config=None):
+def _build_operators(
+    model_dir, epw, episode_days, mass_config=None, *, solar_to_interior_mass=True
+):
   """Contract the native equations once and precompute episode forcing."""
   plan, run_day = generate.load_plan(model_dir)
   office = generate.read_manifest(model_dir).get('office', False)
@@ -104,15 +106,25 @@ def _build_operators(model_dir, epw, episode_days, mass_config=None):
     storage = np.bincount(groups, weights=static['storage'], minlength=count)
     radiation = static['operator']
     factor = static['factor']
+    geometry = static['geometry']
   else:
-    balance = interior_mass.assemble(building, static, zone_nodes, mass_config)
-    storage, radiation = balance.storage, balance.radiation
+    balance = interior_mass.assemble(
+        building,
+        static,
+        zone_nodes,
+        mass_config,
+        solar_to_interior_mass=solar_to_interior_mass,
+    )
+    storage, radiation, geometry = (
+        balance.storage,
+        balance.radiation,
+        balance.geometry,
+    )
     factor = linalg.splu(
         (balance.conduction + coupled_radiation.SLOPE * radiation).tocsc(),
         permc_spec='MMD_AT_PLUS_A',
     )
     hvac_projection = np.pad(hvac_projection, ((0, mass_count), (0, 0)))
-  geometry = static['geometry']
   timestamps = weather._data.index
   outdoor = weather._data['temp_k'].to_numpy()
   if office:
@@ -140,7 +152,10 @@ def _build_operators(model_dir, epw, episode_days, mass_config=None):
     forcing_table[step, :count] = (
         static['ambient'] * ambient
         + grouped_office[stamp.hour]
-        + forcing.shortwave_air_gain
+    )
+    forcing_table[step] += (
+        forcing.shortwave_air_gain
+        + forcing.mass_gain
         + forcing.emission * forcing.radiant_temperature**4
     )
     comfort[step] = native.hvac.is_comfort_mode(stamp)
@@ -261,10 +276,13 @@ def _advance(state, actions, operators, nonlinear_stats=None):
   heat_now = (zone_temp < heat) | ((zone_temp < mid) & (state.mode == _HEAT))
   cool_now = (zone_temp > cool) | ((zone_temp > mid) & (state.mode == _COOL))
   normal_mode = jnp.where(heat_now, _HEAT, jnp.where(cool_now, _COOL, _OFF))
-  # Eco transition takes priority over the normal hysteresis for this step.
+  # Eco transition takes priority over the normal hysteresis for this step
+  # unless the zone is already above the eco cooling setpoint.
   entered_eco = (index > 0) & operators.comfort[jnp.maximum(index - 1, 0)]
-  passive = ~operators.comfort[index] & (
-      entered_eco | ((state.mode == _PASSIVE) & (zone_temp > heat))
+  passive = (
+      ~operators.comfort[index]
+      & (zone_temp <= cool)
+      & (entered_eco | ((state.mode == _PASSIVE) & (zone_temp > heat)))
   )
   mode = jnp.where(passive, _PASSIVE, normal_mode).astype(jnp.int32)
 
@@ -349,6 +367,7 @@ class JaxOffice:
       platform='cpu',
       nonlinear=False,
       mass_config=None,
+      solar_to_interior_mass=True,
   ):
     if platform not in ('cpu', 'gpu'):
       raise ValueError("platform must be 'cpu' or 'gpu'")
@@ -370,7 +389,11 @@ class JaxOffice:
     self.num_envs = int(num_envs)
     self.episode_steps = int(episode_days) * 24 * settings.STEPS_PER_HOUR
     operators, initial, initial_outdoor = _build_operators(
-        Path(model_dir), Path(epw), int(episode_days), mass_config
+        Path(model_dir),
+        Path(epw),
+        int(episode_days),
+        mass_config,
+        solar_to_interior_mass=solar_to_interior_mass,
     )
     zone_count = len(operators.zone_nodes)
     self.observation_size = zone_count + 1

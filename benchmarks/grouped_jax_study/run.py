@@ -41,6 +41,14 @@ _CENTER = np.array([20.5, 24.5])
 _ACTION_RANGE = 1.5
 
 
+_DETAILED_INTERIOR_MASS = InteriorMass(
+    capacity_per_m2=settings.DETAILED_MASS_CAPACITY_PER_M2,
+    air_conductance_per_m2=settings.DETAILED_MASS_AIR_CONDUCTANCE_PER_M2,
+    exposed_area_per_m2=settings.DETAILED_MASS_EXPOSED_AREA_PER_M2,
+    emissivity=0.9,
+)
+
+
 class _OfficeSimulator(sbsim_model._OfficeForcing, GroupedJaxSimulator):
   """Use the office heat schedule with the public thermal solver."""
 
@@ -63,8 +71,8 @@ def _solver_options(args, variant, *, linearized_radiative_heat_transfer=None):
       include_interior_radiative_heat_transfer=True,
       include_exterior_radiative_heat_transfer=True,
       include_interior_mass=True,
-      interior_mass=InteriorMass(),
-      wall_depth_cells=1,
+      interior_mass=_DETAILED_INTERIOR_MASS,
+      wall_depth_cells=2,
   )
 
 
@@ -80,12 +88,18 @@ class _SbsimOffice:
     self.action_size = 2 * len(self.names)
     self.weather = weather
     initial = sbsim_model.make_simulator(
-        plan, weather, weather.start, office=True, solver='linear-radiation'
+        plan,
+        weather,
+        weather.start,
+        office=True,
+        detailed_office=True,
+        solver='linear-radiation',
     )
     self.sim = _OfficeSimulator(
         building=initial.building,
         hvac=initial.hvac,
         office_heat=initial._office_heat,
+        weekend_office_heat=initial._weekend_office_heat,
         weather_controller=weather,
         start_timestamp=weather.start,
         time_step_sec=settings.STEP_SECONDS,
@@ -156,7 +170,11 @@ class _SbsimOffice:
 
 
 def _model(args, root, zones, *, needs_energyplus=True):
-  spec = generate.PlanSpec(zones, window_width_m=2)
+  spec = generate.PlanSpec(
+      zones,
+      window_width_m=2,
+      exterior_wall_thickness_m=settings.EXTERIOR_WALL_THICKNESS_M,
+  )
   plan = generate.make_plan(spec)
   location = root / 'models' / f'zone{zones}'
   if needs_energyplus and not all(
@@ -614,7 +632,8 @@ def main():
           updates=args.updates,
           batch_size=args.batch_size,
           grouped_method=args.grouped_method,
-          effective_interior_mass=asdict(InteriorMass()),
+          exterior_wall_thickness_m=settings.EXTERIOR_WALL_THICKNESS_M,
+          effective_interior_mass=asdict(_DETAILED_INTERIOR_MASS),
       ),
   )
   with (root / '.run.lock').open('a') as lock:

@@ -7,6 +7,7 @@ from scipy import sparse
 
 from .matched_vav import coupled_radiation
 from .matched_vav import settings
+from smart_control.simulator import building_radiation_utils
 from smart_control.simulator import constants
 from smart_control.simulator.grouped_heat_balance import InteriorMass as InteriorMass
 
@@ -19,6 +20,7 @@ class HeatBalance:
   conduction: sparse.csr_matrix
   radiation: sparse.csr_matrix
   storage: np.ndarray
+  geometry: building_radiation_utils.ExteriorRadiationGeometry
 
 
 def enclosure_operator(weights):
@@ -35,7 +37,9 @@ def enclosure_operator(weights):
   return SIGMA * (np.diag(weights) - np.outer(weights, weights) / total)
 
 
-def assemble(building, static, air_nodes, config):
+def assemble(
+    building, static, air_nodes, config, *, solar_to_interior_mass=True
+):
   """Append one mass storage state per room and assemble room longwave."""
   count = static['conduction'].shape[0]
   n_rooms = len(air_nodes)
@@ -91,4 +95,20 @@ def assemble(building, static, air_nodes, config):
   radiation = sparse.csr_matrix((rad_values, (rad_rows, rad_cols)), shape=(size, size))
   radiation += sparse.diags(np.pad(static['geometry'].emission, (0, n_rooms)))
   storage = np.concatenate((air_storage, mass_storage))
-  return HeatBalance(conduction, radiation, storage)
+  base_geometry = static['geometry']
+  face_areas = np.pad(base_geometry.face_areas, ((0, 0), (0, n_rooms)))
+  if solar_to_interior_mass:
+    face_areas[:, mass_nodes] = face_areas[:, air_nodes]
+    face_areas[:, air_nodes] = 0.0
+  geometry = building_radiation_utils.ExteriorRadiationGeometry(
+      face_areas=face_areas,
+      azimuths=base_geometry.azimuths,
+      absorptivity=np.pad(
+          base_geometry.absorptivity, (0, n_rooms), constant_values=1.0
+      ),
+      emission=np.pad(base_geometry.emission, (0, n_rooms)),
+      transmittance=0.0,
+      window_targets=(),
+      mass_mask=np.zeros(size, dtype=bool),
+  )
+  return HeatBalance(conduction, radiation, storage, geometry)

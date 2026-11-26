@@ -101,6 +101,32 @@ class ThermostatTest(absltest.TestCase):
     )
     self.assertEqual(t.update(0, weekend), thermostat.Thermostat.Mode.HEAT)
 
+  def test_eco_mode_cools_above_cooling_setpoint(self):
+    weekday = pd.Timestamp(year=2021, month=5, day=5, hour=11)
+    weekend = pd.Timestamp(year=2021, month=5, day=8, hour=11)  # a Saturday
+    schedule = get_mock_schedule()
+    _, eco_high = schedule.get_temperature_window(weekend)
+
+    # Exiting PASSIVE_COOL once temperature exceeds the eco cooling setpoint.
+    t = thermostat.Thermostat(schedule)
+    t.update(eco_high - 1, weekday)
+    self.assertEqual(
+        t.update(eco_high - 1, weekend), thermostat.Thermostat.Mode.PASSIVE_COOL
+    )
+    self.assertEqual(
+        t.update(eco_high, weekend), thermostat.Thermostat.Mode.PASSIVE_COOL
+    )
+    self.assertEqual(
+        t.update(eco_high + 0.5, weekend), thermostat.Thermostat.Mode.COOL
+    )
+
+    # Entering eco mode already above eco cooling setpoint activates COOL.
+    t2 = thermostat.Thermostat(schedule)
+    t2.update(eco_high + 1, weekday)
+    self.assertEqual(
+        t2.update(eco_high + 1, weekend), thermostat.Thermostat.Mode.COOL
+    )
+
 
 if __name__ == '__main__':
   absltest.main()

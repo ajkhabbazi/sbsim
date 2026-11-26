@@ -152,9 +152,16 @@ class EpwWeather(weather_controller.BaseWeatherController):
 class _OfficeForcing:
   """Apply the scheduled sensible gains and outdoor-air ratio at each step."""
 
-  def __init__(self, *, office_heat: np.ndarray, **kwargs):
+  def __init__(
+      self,
+      *,
+      office_heat: np.ndarray,
+      weekend_office_heat: np.ndarray | None = None,
+      **kwargs,
+  ):
     super().__init__(**kwargs)
     self._office_heat = office_heat
+    self._weekend_office_heat = weekend_office_heat
     self.office_heat_w = office_heat.sum(axis=(1, 2))
 
   def execute_step_sim(self, video_filename='sample.mp4'):
@@ -170,9 +177,14 @@ class _OfficeForcing:
     # Keep input_q as the native HVAC forcing outside the heat-balance call.
     building = self.building
     hvac_heat = building.input_q
-    building.input_q = (
-        hvac_heat + self._office_heat[self.current_timestamp.hour]
-    )
+    if (
+        self._weekend_office_heat is not None
+        and self.current_timestamp.dayofweek >= 5
+    ):
+      gains = self._weekend_office_heat
+    else:
+      gains = self._office_heat[self.current_timestamp.hour]
+    building.input_q = hvac_heat + gains
     try:
       return super().finite_differences_timestep(
           ambient_temperature=ambient_temperature,
@@ -450,6 +462,52 @@ class _SharedSupplyHvac(hvac_floorplan_based.FloorPlanBasedHvac):
   _vav_type = _SharedSupplyVav
 
 
+class _ProportionalVav(_SharedSupplyVav):
+  """Modulate damper and reheat with integral damping stable under 1-step lag."""
+
+  def update_settings(self, zone_temp, current_timestamp):
+    self._zone_air_temperature = zone_temp
+    self._thermostat.update(zone_temp, current_timestamp)
+    heat_sp, cool_sp = (
+        self._thermostat.get_setpoint_schedule().get_temperature_window(
+            current_timestamp
+        )
+    )
+    gain = settings.DETAILED_VAV_INTEGRAL_GAIN
+    if zone_temp > cool_sp:
+      self.reheat_valve_setting = 0.0
+      self.damper_setting = float(
+          np.clip(self.damper_setting + gain * (zone_temp - cool_sp), 0.1, 1.0)
+      )
+    elif zone_temp < heat_sp:
+      self.damper_setting = 0.5
+      self.reheat_valve_setting = float(
+          np.clip(
+              self.reheat_valve_setting + gain * (heat_sp - zone_temp), 0.0, 1.0
+          )
+      )
+    else:
+      if self.reheat_valve_setting > 0.0:
+        self.reheat_valve_setting = float(
+            np.clip(
+                self.reheat_valve_setting + gain * (heat_sp - zone_temp),
+                0.0,
+                1.0,
+            )
+        )
+        self.damper_setting = 0.5 if self.reheat_valve_setting > 0.0 else 0.1
+      elif self.damper_setting > 0.1:
+        self.damper_setting = float(
+            np.clip(
+                self.damper_setting + gain * (zone_temp - cool_sp), 0.1, 1.0
+            )
+        )
+
+
+class _ProportionalHvac(hvac_floorplan_based.FloorPlanBasedHvac):
+  _vav_type = _ProportionalVav
+
+
 class TunedLUSimulator(OptimizedLUSimulator):
   """Cache the static window routing in the full-grid solver."""
 
@@ -540,11 +598,14 @@ def make_simulator(
     start: pd.Timestamp,
     *,
     office: bool = False,
+    detailed_office: bool = False,
     solver: str = 'jax',
     air_block_cells: int | None = None,
     exterior_radiation: str = 'full',
 ):
   """Build floor-plan HVAC devices and the selected thermal solver."""
+  if detailed_office:
+    office = True
   if solver not in _SOLVERS:
     raise ValueError(f'Unknown SBSim solver: {solver}')
   coupled = solver in ('coupled-radiation', 'linear-radiation', 'linear-radiation-envelope')
@@ -558,6 +619,19 @@ def make_simulator(
       settings.WALL_CONDUCTIVITY,
       settings.WALL_SPECIFIC_HEAT,
       settings.WALL_DENSITY,
+  )
+  has_thick_exterior = (
+      spec.exterior_wall_thickness_m is not None
+      and spec.exterior_wall_thickness_m > spec.wall_thickness_m
+  )
+  exterior_wall = (
+      building.MaterialProperties(
+          settings.EXTERIOR_WALL_CONDUCTIVITY,
+          settings.EXTERIOR_WALL_SPECIFIC_HEAT,
+          settings.EXTERIOR_WALL_DENSITY,
+      )
+      if (detailed_office or has_thick_exterior)
+      else wall
   )
   # SBSim window CVs use a full-height facade area. Use an effective solar
   # transmission over that area to represent the common shorter window.
@@ -579,7 +653,7 @@ def make_simulator(
       + KELVIN_OFFSET,
       inside_air_properties=building.MaterialProperties(50.0, 1005.0, 1.2),
       inside_wall_properties=wall,
-      building_exterior_properties=wall,
+      building_exterior_properties=exterior_wall,
       floor_plan=plan.grid,
       zone_map=plan.zone_map,
       buffer_from_walls=0,
@@ -593,6 +667,7 @@ def make_simulator(
         f'SBSim room order differs from the floor plan: {list(room_cells)}'
     )
   office_heat = np.zeros((24, *plan.grid.shape)) if office else None
+  weekend_office_heat = np.zeros(plan.grid.shape) if detailed_office else None
   for room in plan.rooms:
     rows, cols = np.array(built._room_dict[room.name]).T  # pylint: disable=protected-access
     west, south, east, north = room.bounds_m
@@ -616,12 +691,26 @@ def make_simulator(
           [office_loads.sensible_watts(room, hour) for hour in range(24)]
       )
       office_heat[:, rows, cols] = watts[:, None] / len(rows)
+    if weekend_office_heat is not None:
+      weekend_office_heat[rows, cols] = (
+          office_loads.weekend_sensible_watts(room) / len(rows)
+      )
 
-  flow = plan.rooms[0].area_m2 * settings.FLOW_PER_M2
+  flow_per_m2 = (
+      settings.DETAILED_FLOW_KG_PER_S_M2
+      if detailed_office
+      else settings.FLOW_PER_M2
+  )
+  supply_c = (
+      settings.DETAILED_SUPPLY_AIR_C
+      if detailed_office
+      else settings.SUPPLY_AIR_C
+  )
+  flow = plan.rooms[0].area_m2 * flow_per_m2
   ahu = air_handler.AirHandler(
       recirculation=1.0,
-      heating_air_temp_setpoint=settings.SUPPLY_AIR_C - 1 + KELVIN_OFFSET,
-      cooling_air_temp_setpoint=settings.SUPPLY_AIR_C + KELVIN_OFFSET,
+      heating_air_temp_setpoint=supply_c - 1 + KELVIN_OFFSET,
+      cooling_air_temp_setpoint=supply_c + KELVIN_OFFSET,
       fan_differential_pressure=settings.FAN_PRESSURE_PA,
       fan_efficiency=settings.FAN_EFFICIENCY,
       max_air_flow_rate=flow * len(names),
@@ -640,11 +729,12 @@ def make_simulator(
   schedule = schedule_type(
       0, 24, bounds, bounds, time_zone=start.tz
   )
-  hvac_type = (
-      _SharedSupplyHvac
-      if solver == 'tuned-lu' or coupled
-      else hvac_floorplan_based.FloorPlanBasedHvac
-  )
+  if detailed_office:
+    hvac_type = _ProportionalHvac
+  elif solver == 'tuned-lu' or coupled:
+    hvac_type = _SharedSupplyHvac
+  else:
+    hvac_type = hvac_floorplan_based.FloorPlanBasedHvac
   hvac = hvac_type(
       air_handler=ahu,
       boiler=heat_source,
@@ -655,6 +745,8 @@ def make_simulator(
   )
   simulator = _SOLVERS[solver][int(office)]
   extra = {'office_heat': office_heat} if office else {}
+  if weekend_office_heat is not None:
+    extra['weekend_office_heat'] = weekend_office_heat
   if solver == 'jax':
     extra['sync_to_host_each_step'] = True
   elif grouped:

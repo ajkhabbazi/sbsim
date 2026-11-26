@@ -116,17 +116,19 @@ class Thermostat:
     # In comfort mode, default control.
     if self._setpoint_schedule.is_comfort_mode(current_timestamp):
       self._default_control(zone_temp, temperature_window)
-    # Just entered eco mode, allow passive cool.
+    # Just entered eco mode, allow passive cool unless already above cooling
+    # setpoint.
     elif (
         self._previous_timestamp is not None
         and self._setpoint_schedule.is_comfort_mode(self._previous_timestamp)
+        and zone_temp <= temperature_window[1]
     ):
       self._current_mode = self.Mode.PASSIVE_COOL
-    # Been in eco mod
+    # Been in eco mode.
     else:
       if (
           self._current_mode == self.Mode.PASSIVE_COOL
-          and zone_temp > temperature_window[0]
+          and temperature_window[0] < zone_temp <= temperature_window[1]
       ):
         self._current_mode = self.Mode.PASSIVE_COOL
       else:
