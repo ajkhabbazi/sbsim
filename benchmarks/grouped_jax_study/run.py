@@ -242,7 +242,7 @@ def _timing(args, root):
   for zones in args.zones:
     plan, weather, location = _model(args, root, zones)
     actions = _actions(weather, zones, args.days * _DAY_STEPS)
-    for variant in _ENGINES:
+    for variant in args.engines:
       saved = _completed_case(root, 'timing', zones, variant, 'rollout.npz')
       if saved is not None:
         rows.append(saved)
@@ -436,7 +436,7 @@ def _sac(args, root):
   rows = []
   for zones in args.zones:
     plan, weather, location = _model(args, root, zones)
-    for variant in _ENGINES:
+    for variant in args.engines:
       saved = _completed_case(
           root, 'sac', zones, variant, 'actor.npz',
           matches=lambda row: row.get('learner_platform', args.platform) == learner.platform,
@@ -454,7 +454,7 @@ def _sac(args, root):
       print(f"  Environment ready in {timing['environment_setup_s']:.2f}s", flush=True)
       config = argparse.Namespace(
           engine='eplus' if variant == 'energyplus' else 'sbsim',
-          transitions=env.episode_steps,
+          transitions=args.transitions or env.episode_steps,
           seed=args.seed,
           batch_size=args.batch_size,
           collect_every=args.collect_every,
@@ -520,9 +520,17 @@ def _parser():
       help='Reuse completed sections and cases in --output with the same configuration',
   )
   parser.add_argument('--section', choices=_SECTIONS, action='append')
+  parser.add_argument(
+      '--engines', choices=_ENGINES, nargs='+', default=list(_ENGINES),
+      help='Engines to run; one per process avoids sharing JAX compilation',
+  )
   parser.add_argument('--zones', type=int, nargs='+', default=[16, 36, 100])
   parser.add_argument('--physics-zones', type=int, default=100)
   parser.add_argument('--days', type=int, default=7)
+  parser.add_argument(
+      '--transitions', type=int,
+      help='Total SAC transitions across episodes (defaults to one episode)',
+  )
   parser.add_argument(
       '--run-day', type=date.fromisoformat, default=date(2024, 7, 15)
   )
